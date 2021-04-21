@@ -28,11 +28,12 @@ public class JdbcPhoneDaoIntTest {
     private static final int COUNT_OF_COLORS_FIRST_PHONE = 3;
     private static final String BRAND_SAMSUNG = "Samsung";
     private static final String MODEL_GALAXY_2020 = "GALAXY 2020";
+    private static final Integer PIXEL_DENSITY = 17;
 
     @Resource
-    JdbcPhoneDao phoneDao;
+    private JdbcPhoneDao phoneDao;
     @Resource
-    JdbcTemplate jdbcTemplate;
+    private JdbcTemplate jdbcTemplate;
 
     @After
     public void tearDown() {
@@ -88,11 +89,15 @@ public class JdbcPhoneDaoIntTest {
     }
 
     @Test
-    public void shouldSaveTwoPhonesWithEqualsBrandAndModel() {
+    public void shouldUpdatePhone() {
         Phone phone = getValidPhone();
+        jdbcTemplate.update("INSERT INTO phones (brand,model) values ( ?, ? )", phone.getBrand(), phone.getModel());
+        phone.setPixelDensity(PIXEL_DENSITY);
 
         phoneDao.save(phone);
-        phoneDao.save(phone);
+        Phone result = getTestPhone(BRAND_SAMSUNG, MODEL_GALAXY_2020);
+
+        assertEquals(PIXEL_DENSITY, result.getPixelDensity());
     }
 
     private Phone getValidPhone() {
@@ -103,7 +108,7 @@ public class JdbcPhoneDaoIntTest {
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void shouldSaveIllegalPhoneAndThrowException(){
+    public void shouldSaveIllegalPhoneAndThrowException() {
         Phone phone = getValidPhone();
         phone.setModel(null);
 
@@ -111,7 +116,7 @@ public class JdbcPhoneDaoIntTest {
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void shouldSaveNullAndThrowException(){
+    public void shouldSaveNullAndThrowException() {
         Phone phone = getValidPhone();
         phone.setModel(null);
 
@@ -124,16 +129,15 @@ public class JdbcPhoneDaoIntTest {
 
         phoneDao.save(getValidPhoneWithAllColors());
         Phone phone = getTestPhone(BRAND_SAMSUNG, MODEL_GALAXY_2020);
-        List<Long> colorIds = jdbcTemplate.query("SELECT * FROM phone2color WHERE phoneId = " + phone.getId(),
-                (rs, rowNum) -> rs.getLong("colorId"));
+        List<Long> colorIds = jdbcTemplate.query("SELECT * FROM phone2color WHERE phoneId = ?",
+                (rs, rowNum) -> rs.getLong("colorId"), phone.getId());
 
         assertEquals(excepted, colorIds.size());
     }
 
     private Phone getTestPhone(String brand, String model) {
         return jdbcTemplate
-                .queryForObject("SELECT * FROM phones WHERE brand ='" + brand +
-                        "' and model = '" + model + "'", new BeanPropertyRowMapper<>(Phone.class));
+                .queryForObject("SELECT * FROM phones WHERE brand = ? and model = ?", new BeanPropertyRowMapper<>(Phone.class), brand, model);
     }
 
     private Phone getValidPhoneWithAllColors() {

@@ -1,7 +1,5 @@
 package com.es.core.model.phone;
 
-import org.springframework.beans.BeanUtils;
-import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.simple.SimpleJdbcInsert;
@@ -9,145 +7,125 @@ import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
-import java.beans.PropertyDescriptor;
-import java.lang.reflect.InvocationTargetException;
-import java.util.HashMap;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.concurrent.locks.ReadWriteLock;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 @Component
 public class JdbcPhoneDao implements PhoneDao {
-    private static final String SELECT_PHONE_BY_ID = "select * from phones where id = %d";
-    private static final String SELECT_COLORS_IDS_BY_PHONE_ID = "select colorId  from COLORS join phone2color on id = colorId where phoneId = %d";
-    private static final String FIND_COLOR_BY_ID = "SELECT * FROM colors WHERE id = %d";
+    private static final String SELECT_PHONE_BY_ID = "SELECT * FROM phones WHERE id = ?";
+    private static final String FIND_COLOR_BY_ID = "SELECT colorId, code FROM colors JOIN phone2color ON colors.id = phone2color.colorId WHERE phoneId = ?";
+    private static final String INSERT_INTO_PHONE_2_COLOR = "INSERT INTO phone2color (phoneId, colorId) VALUES  (?, ?)";
+    private static final String FIND_ID_PHONE_BY_BRAND_AND_MODEL = "SELECT id FROM phones WHERE brand = ? AND model = ? ";
+    private static final String SELECT_FROM_PHONES_LIMIT_OFFSET = "SELECT * FROM phones LIMIT ? OFFSET ?";
+    private static final String UPDATE_PHONE = "UPDATE phones SET brand = ?, model = ?, price = ?, displaySizeInches = ?, weightGr = ?, lengthMm = ?, widthMm = ?, heightMm = ?, announced = ?, deviceType = ?, os = ?, displayResolution = ?, pixelDensity = ?, displayTechnology = ?, backCameraMegapixels = ?, frontCameraMegapixels = ?, ramGb = ?, internalStorageGb = ?, batteryCapacityMah = ?, talkTimeHours = ?, standByTimeHours = ?, bluetooth = ?, positioning = ?, imageUrl = ?, description = ? WHERE id = ?";
+
     private static final String COLUMN_ID = "id";
     private static final String COLUMN_CODE = "code";
     private static final String COLUMN_COLOR_ID = "colorId";
     private static final String TABLE_PHONES = "phones";
     private static final String COLUMN_COLORS = "colors";
     private static final String ILLEGAL_ARGUMENT_MSG = "phone or phone.getBrand() or phone. getModel() is null";
+    private static final String DELETE_COLORS_BY_PHONE_ID = "DELETE FROM phone2color WHERE phoneId = ?";
 
     @Resource
     private JdbcTemplate jdbcTemplate;
-    private final ReadWriteLock readWriteLock = new ReentrantReadWriteLock();
-    private final Map<String, PropertyDescriptor> mappedFields = new HashMap<>();
+    private PhoneMapper phoneMapper;
     private SimpleJdbcInsert insertPhone;
+    private final List<String> forbidProperties = new ArrayList<>();
 
     @PostConstruct
     private void init() {
         insertPhone = new SimpleJdbcInsert(jdbcTemplate)
                 .withTableName(TABLE_PHONES)
                 .usingGeneratedKeyColumns(COLUMN_ID);
+        phoneMapper = new PhoneMapper();
+        forbidProperties.add(COLUMN_ID);
+        forbidProperties.add(COLUMN_COLORS);
     }
 
     public Optional<Phone> get(final Long key) {
-        readWriteLock.readLock().lock();
-        Optional<Phone> phone = Optional.empty();
-        if (key != null) {
-            phone = Optional.ofNullable(
-                    jdbcTemplate.queryForObject(
-                            String.format(SELECT_PHONE_BY_ID, key),
-                            new BeanPropertyRowMapper<>(Phone.class)
-                    ));
+        if (key == null) {
+            return Optional.empty();
         }
+        Optional<Phone> phone = Optional.ofNullable(
+                jdbcTemplate.queryForObject(SELECT_PHONE_BY_ID, new BeanPropertyRowMapper<>(Phone.class), key));
         phone.ifPresent(this::setColors);
-        readWriteLock.readLock().unlock();
         return phone;
     }
 
     private void setColors(Phone phone) {
-        List<Long> colorIds =
-                jdbcTemplate
-                        .query(String.format(SELECT_COLORS_IDS_BY_PHONE_ID, phone.getId()),
-                                (rs, rowNum) -> rs.getLong(COLUMN_COLOR_ID));
-        Set<Color> colorSet = createColorSetByColorIds(colorIds);
+        List<Color> colors = jdbcTemplate.query(FIND_COLOR_BY_ID, (resultSet, i) -> {
+            Color color = new Color();
+            color.setId(resultSet.getLong(COLUMN_COLOR_ID));
+            color.setCode(resultSet.getString(COLUMN_CODE));
+            return color;
+        }, phone.getId());
+        Set<Color> colorSet = new HashSet<>(colors);
         phone.setColors(colorSet);
     }
 
-    private Set<Color> createColorSetByColorIds(List<Long> colorIds) {
-        Set<Color> colorSet = new HashSet<>();
-        colorIds.forEach(id -> {
-            Color colorById = jdbcTemplate.queryForObject(String.format(FIND_COLOR_BY_ID, id), (resultSet, i) -> {
-                Color color = new Color();
-                color.setId(resultSet.getLong(COLUMN_ID));
-                color.setCode(resultSet.getString(COLUMN_CODE));
-                return color;
-            });
-            colorSet.add(colorById);
-        });
-        return colorSet;
-    }
-
     public void save(final Phone phone) {
-        readWriteLock.writeLock().lock();
         if (phone != null && phone.getBrand() != null && phone.getModel() != null) {
-            addPhoneIfNotExist(phone);
+            saveValidPhone(phone);
         } else {
             throw new IllegalArgumentException(ILLEGAL_ARGUMENT_MSG);
         }
-        readWriteLock.writeLock().unlock();
     }
 
-    private void addPhoneIfNotExist(Phone phone) {
-        try {
-            getPhoneId(phone.getBrand(), phone.getModel());
-        } catch (EmptyResultDataAccessException exception) {
-            addPhone(phone);
-            addColors(phone);
+    private void saveValidPhone(Phone phone) {
+        if (containsPhone(phone)) {
+            phone.setId(getExistPhoneId(phone));
+            addPhoneIfExist(phone);
+        } else {
+            addPhoneIfNotExist(phone);
         }
     }
 
-    private Long getPhoneId(String brand, String model) {
-        return jdbcTemplate
-                .queryForObject("SELECT id FROM phones WHERE brand ='" + brand +
-                        "' and model = '" + model + "'", (rs, rowNum) -> rs.getLong(COLUMN_ID));
+    private void addPhoneIfExist(Phone phone) {
+        jdbcTemplate.update(UPDATE_PHONE, phone.getBrand(), phone.getModel(), phone.getPrice(),
+                phone.getDisplaySizeInches(), phone.getWeightGr(), phone.getLengthMm(), phone.getWidthMm(), phone.getHeightMm(),
+                phone.getAnnounced(), phone.getDeviceType(), phone.getOs(), phone.getDisplayResolution(), phone.getPixelDensity(),
+                phone.getDisplayTechnology(), phone.getBackCameraMegapixels(), phone.getFrontCameraMegapixels(), phone.getRamGb(),
+                phone.getInternalStorageGb(), phone.getBatteryCapacityMah(), phone.getTalkTimeHours(), phone.getStandByTimeHours(),
+                phone.getBluetooth(), phone.getPositioning(), phone.getImageUrl(), phone.getDescription(), phone.getId());
+        jdbcTemplate.update(DELETE_COLORS_BY_PHONE_ID, phone.getId());
+        addColors(phone);
+    }
+
+    private Long getExistPhoneId(Phone phone) {
+        return jdbcTemplate.queryForObject(FIND_ID_PHONE_BY_BRAND_AND_MODEL, Long.class, phone.getBrand(), phone.getModel());
+    }
+
+    private void addPhoneIfNotExist(Phone phone) {
+        addPhone(phone);
+        addColors(phone);
+    }
+
+    private boolean containsPhone(Phone phone) {
+        List<Long> phones = jdbcTemplate.queryForList(FIND_ID_PHONE_BY_BRAND_AND_MODEL, Long.class, phone.getBrand(), phone.getModel());
+        return !phones.isEmpty();
     }
 
     private void addColors(Phone phone) {
         if (phone.getColors() != null && !phone.getColors().isEmpty()) {
-            phone.getColors()
-                    .forEach(color -> jdbcTemplate.update("insert into phone2color (phoneId, colorId) values (?, ?)",
-                            phone.getId(), color.getId()));
+            phone.getColors().forEach(color -> jdbcTemplate.update(INSERT_INTO_PHONE_2_COLOR, phone.getId(), color.getId()));
         }
     }
 
     private void addPhone(Phone phone) {
-        if (mappedFields.isEmpty()) {
-            PropertyDescriptor[] pds = BeanUtils.getPropertyDescriptors(Phone.class);
-            initializeMappedFields(pds);
-        }
-
-        Map<String, Object> parameters = new HashMap<>();
-        mappedFields.forEach((name, pd) -> {
-            try {
-                parameters.put(name, pd.getReadMethod().invoke(phone));
-            } catch (IllegalAccessException | InvocationTargetException e) {
-                e.printStackTrace();
-            }
-        });
+        Map<String, Object> parameters = phoneMapper.map(phone, forbidProperties);
         phone.setId(insertPhone.executeAndReturnKey(parameters).longValue());
     }
 
 
-    private void initializeMappedFields(PropertyDescriptor[] pds) {
-        for (PropertyDescriptor pd : pds) {
-            if (!pd.getName().equals(COLUMN_COLORS) && !pd.getName().equals(COLUMN_ID)) {
-                mappedFields.put(pd.getName(), pd);
-            }
-        }
-    }
-
     public List<Phone> findAll(int offset, int limit) {
-        readWriteLock.readLock().lock();
-        List<Phone> phones = jdbcTemplate.query("select * from phones limit " + limit + " offset " + offset,
-                new BeanPropertyRowMapper<>(Phone.class));
+        List<Phone> phones = jdbcTemplate.query(SELECT_FROM_PHONES_LIMIT_OFFSET,
+                new BeanPropertyRowMapper<>(Phone.class), limit, offset);
         phones.forEach(phone -> Optional.ofNullable(phone).ifPresent(this::setColors));
-        readWriteLock.readLock().unlock();
         return phones;
     }
 
