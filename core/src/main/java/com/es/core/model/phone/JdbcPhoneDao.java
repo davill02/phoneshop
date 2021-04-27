@@ -1,5 +1,6 @@
 package com.es.core.model.phone;
 
+import com.es.core.utils.StringUtils;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.simple.SimpleJdbcInsert;
@@ -14,6 +15,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
+
 @Component
 public class JdbcPhoneDao implements PhoneDao {
     private static final String SELECT_PHONE_BY_ID = "SELECT * FROM phones WHERE id = ?";
@@ -22,29 +24,53 @@ public class JdbcPhoneDao implements PhoneDao {
     private static final String FIND_ID_PHONE_BY_BRAND_AND_MODEL = "SELECT id FROM phones WHERE brand = ? AND model = ? ";
     private static final String SELECT_FROM_PHONES_LIMIT_OFFSET = "SELECT * FROM phones LIMIT ? OFFSET ?";
     private static final String UPDATE_PHONE = "UPDATE phones SET brand = ?, model = ?, price = ?, displaySizeInches = ?, weightGr = ?, lengthMm = ?, widthMm = ?, heightMm = ?, announced = ?, deviceType = ?, os = ?, displayResolution = ?, pixelDensity = ?, displayTechnology = ?, backCameraMegapixels = ?, frontCameraMegapixels = ?, ramGb = ?, internalStorageGb = ?, batteryCapacityMah = ?, talkTimeHours = ?, standByTimeHours = ?, bluetooth = ?, positioning = ?, imageUrl = ?, description = ? WHERE id = ?";
+    private static final String COLUMNS = " brand,model,price,displaySizeInches,weightGr, lengthMm,\n" +
+            "widthMm, heightMm, announced, deviceType, os, displayResolution,pixelDensity, displayTechnology, backCameraMegapixels,\n" +
+            "frontCameraMegapixels, ramGb, internalStorageGb, batteryCapacityMah, talkTimeHours, standByTimeHours, bluetooth,\n" +
+            "positioning, imageUrl, description, phoneId as id\n";
+    private static final String SQL_SEARCH_FUNCTION = "SELECT " + COLUMNS +
+            ", (LENGTH(LOWER(MODEL)) + LENGTH(LOWER(BRAND)) - LENGTH(REGEXP_REPLACE(LOWER(BRAND),?,''))-  LENGTH(REGEXP_REPLACE(LOWER(MODEL),?, ''))) AS rank " +
+            "FROM phones JOIN stocks s on phones.id = S.phoneId\n" +
+            "where (LENGTH(LOWER(model)) + LENGTH(LOWER(BRAND)) - LENGTH(REGEXP_REPLACE(LOWER(BRAND),?,'')) - LENGTH(REGEXP_REPLACE(LOWER(model), ?, ''))) > 0 AND stock > 0\n";
+    private static final String FIND_ORDER_BY = "SELECT " + COLUMNS + " FROM phones JOIN stocks s on phones.id = S.phoneId\n" +
+            "WHERE stock > 0 " + "ORDER BY %s %s" + " LIMIT ? OFFSET ?";
+    private static final String RANK_SEARCH = SQL_SEARCH_FUNCTION + "ORDER BY rank DESC" + " LIMIT ? OFFSET ?";
+    private static final String RANK_SEARCH_WITH_FIELD = SQL_SEARCH_FUNCTION + "ORDER BY rank DESC, %s %s" + " LIMIT ? OFFSET ?";
+    private static final String DELETE_COLORS_BY_PHONE_ID = "DELETE FROM phone2color WHERE phoneId = ?";
+    private static final String SEARCH_COUNT = "SELECT COUNT(*) FROM PHONES JOIN STOCKS S on PHONES.ID = S.PHONEID where (LENGTH(LOWER(MODEL)) + LENGTH(LOWER(BRAND)) - LENGTH(REGEXP_REPLACE(LOWER(BRAND),?,'')) - LENGTH(REGEXP_REPLACE(LOWER(MODEL), ?, ''))) > 0 AND STOCK > 0";
+    private static final String ALL_PHONES_COUNT = "SELECT COUNT(*) FROM PHONES JOIN STOCKS S on PHONES.ID = S.PHONEID where STOCK > 0";
+    private static final String SELECT_STOCK_BY_ID = "SELECT stock, reserved FROM stocks WHERE phoneId = ?";
 
     private static final String COLUMN_ID = "id";
     private static final String COLUMN_CODE = "code";
     private static final String COLUMN_COLOR_ID = "colorId";
-    private static final String TABLE_PHONES = "phones";
+    private static final String COLUMN_STOCK = "stock";
     private static final String COLUMN_COLORS = "colors";
+    private static final String COLUMN_RESERVED = "reserved";
+    private static final String TABLE_PHONES = "phones";
+    private static final String ASC = "ASC";
+    private static final String DESC = "DESC";
+
+    private static final String ILLEGAL_ORDER_MSG = "Order can be ASC or DESC, now order = ";
     private static final String ILLEGAL_ARGUMENT_MSG = "phone or phone.getBrand() or phone. getModel() is null";
-    private static final String DELETE_COLORS_BY_PHONE_ID = "DELETE FROM phone2color WHERE phoneId = ?";
+    private static final String ILLEGAL_SEARCH_FIELD_MSG = "searchField cant be ";
+    private static final char WHITESPACE = ' ';
+
 
     @Resource
     private JdbcTemplate jdbcTemplate;
     private PhoneMapper phoneMapper;
     private SimpleJdbcInsert insertPhone;
-    private final List<String> forbidProperties = new ArrayList<>();
 
     @PostConstruct
     private void init() {
         insertPhone = new SimpleJdbcInsert(jdbcTemplate)
                 .withTableName(TABLE_PHONES)
                 .usingGeneratedKeyColumns(COLUMN_ID);
-        phoneMapper = new PhoneMapper();
+        List<String> forbidProperties = new ArrayList<>();
         forbidProperties.add(COLUMN_ID);
         forbidProperties.add(COLUMN_COLORS);
+        phoneMapper = new PhoneMapper(forbidProperties);
     }
 
     public Optional<Phone> get(final Long key) {
@@ -55,6 +81,25 @@ public class JdbcPhoneDao implements PhoneDao {
                 jdbcTemplate.queryForObject(SELECT_PHONE_BY_ID, new BeanPropertyRowMapper<>(Phone.class), key));
         phone.ifPresent(this::setColors);
         return phone;
+    }
+
+    public Optional<Stock> getStock(final Long key) {
+        Optional<Phone> phone = this.get(key);
+        if (!phone.isPresent()) {
+            return Optional.empty();
+        }
+        List<Stock> stockList = jdbcTemplate.query(SELECT_STOCK_BY_ID, (rs, num) -> {
+            Stock stock = new Stock();
+            stock.setStock(rs.getInt(COLUMN_STOCK));
+            stock.setReserved(rs.getInt(COLUMN_RESERVED));
+            return stock;
+        }, phone.get().getId());
+        if (stockList.size() == 0) {
+            return Optional.empty();
+        } else {
+            stockList.get(0).setPhone(phone.get());
+            return Optional.ofNullable(stockList.get(0));
+        }
     }
 
     private void setColors(Phone phone) {
@@ -117,7 +162,7 @@ public class JdbcPhoneDao implements PhoneDao {
     }
 
     private void addPhone(Phone phone) {
-        Map<String, Object> parameters = phoneMapper.map(phone, forbidProperties);
+        Map<String, Object> parameters = phoneMapper.map(phone);
         phone.setId(insertPhone.executeAndReturnKey(parameters).longValue());
     }
 
@@ -127,6 +172,78 @@ public class JdbcPhoneDao implements PhoneDao {
                 new BeanPropertyRowMapper<>(Phone.class), limit, offset);
         phones.forEach(phone -> Optional.ofNullable(phone).ifPresent(this::setColors));
         return phones;
+    }
+
+    @Override
+    public List<Phone> findAllOrderBy(int offset, int limit, String order, String sort, String query) {
+        validateOrder(order);
+        validateSearchField(sort);
+        return getPhones(offset, limit, order, sort, query);
+    }
+
+    private void validateOrder(String order) {
+        if (!StringUtils.isBlank(order)) {
+            if (!order.trim().equalsIgnoreCase(ASC) && !order.trim().equalsIgnoreCase(DESC))
+                throw new IllegalArgumentException(ILLEGAL_ORDER_MSG + order);
+        }
+    }
+
+    private void validateSearchField(String sort) {
+        if (!StringUtils.isBlank(sort)) {
+            long count = phoneMapper.getPropertyNames()
+                    .stream()
+                    .filter(sort::equalsIgnoreCase)
+                    .count();
+            if (count == 0) {
+                throw new IllegalArgumentException(ILLEGAL_SEARCH_FIELD_MSG + sort);
+            }
+        }
+    }
+
+    @Override
+    public Long countResultsFindAllOrderBy(String query) {
+        if (StringUtils.isBlank(query)) {
+            return jdbcTemplate.queryForObject(ALL_PHONES_COUNT, Long.class);
+        } else {
+            return jdbcTemplate.queryForObject(SEARCH_COUNT, Long.class, getRegex(query), getRegex(query));
+        }
+    }
+
+    private List<Phone> getPhones(int offset, int limit, String order, String sort, String query) {
+        if (StringUtils.isBlank(order) && StringUtils.isBlank(sort) && StringUtils.isBlank(query)) {
+            return findAllOrderBy(offset, limit, "", COLUMN_ID);
+        }
+        if (!StringUtils.isBlank(query) && (StringUtils.isBlank(sort) || StringUtils.isBlank(order))) {
+            return rankSearch(offset, limit, RANK_SEARCH, query);
+        }
+        if (!StringUtils.isBlank(query) && !StringUtils.isBlank(sort) && !StringUtils.isBlank(order)) {
+            return rankSearch(offset, limit, order.trim(), sort.trim(), query);
+        } else {
+            return findAllOrderBy(offset, limit, order.trim(), sort.trim());
+        }
+    }
+
+    private List<Phone> findAllOrderBy(int offset, int limit, String order, String sort) {
+        List<Phone> phones = jdbcTemplate.query(String.format(FIND_ORDER_BY, sort, order),
+                new BeanPropertyRowMapper<>(Phone.class), limit, offset);
+        phones.forEach(phone -> Optional.ofNullable(phone).ifPresent(this::setColors));
+        return phones;
+    }
+
+    private List<Phone> rankSearch(int offset, int limit, String order, String sort, String query) {
+        return rankSearch(offset, limit, String.format(RANK_SEARCH_WITH_FIELD, sort, order), query);
+    }
+
+    private List<Phone> rankSearch(int offset, int limit, String sqlSearch, String query) {
+        String regex = getRegex(query);
+        List<Phone> phones = jdbcTemplate.query(sqlSearch,
+                new BeanPropertyRowMapper<>(Phone.class), regex, regex, regex, regex, limit, offset);
+        phones.forEach(phone -> Optional.ofNullable(phone).ifPresent(this::setColors));
+        return phones;
+    }
+
+    private String getRegex(String request) {
+        return request.toLowerCase().trim().replace(WHITESPACE, '|');
     }
 
     public void setJdbcTemplate(JdbcTemplate jdbcTemplate) {

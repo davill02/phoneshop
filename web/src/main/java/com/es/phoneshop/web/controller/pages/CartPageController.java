@@ -15,11 +15,11 @@ public class CartPageController {
 
     @RequestMapping(method = RequestMethod.GET)
     public void getCart() {
-        cartService.getCart();
+        cartService.getCart(null);
     }
 
     @RequestMapping(method = RequestMethod.PUT)
     public void updateCart() {
-        cartService.update(null);
+        cartService.update(null, null);
     }
 }
