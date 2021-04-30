@@ -1,4 +1,4 @@
-package com.es.phoneshop.web.controller.ajax;
+package com.es.phoneshop.web.controller.ajax.entities;
 
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Pattern;

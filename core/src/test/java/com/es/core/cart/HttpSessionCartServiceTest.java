@@ -10,7 +10,6 @@ import org.springframework.test.context.junit4.SpringRunner;
 import javax.annotation.Resource;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 @RunWith(SpringRunner.class)
@@ -27,21 +26,6 @@ public class HttpSessionCartServiceTest {
     @Resource
     private CartService cartService;
 
-    @Test
-    public void shouldGetCart() {
-        Cart cart = cartService.getCart(null);
-
-        assertNotNull(cart);
-    }
-
-    @Test
-    public void shouldGetEqualCart() {
-        Cart createdCart = new Cart();
-
-        Cart cart = cartService.getCart(createdCart);
-
-        assertEquals(createdCart, cart);
-    }
 
     @Test(expected = OutOfStockException.class)
     public void shouldAddPhoneAndThrowOutOfStockException() {
@@ -84,8 +68,8 @@ public class HttpSessionCartServiceTest {
 
         cartService.addPhone(LEGAL_PHONE_WITH_STOCK, ONE_ITEM, cart);
 
-        assertTrue(cart.getCart().containsKey(LEGAL_PHONE_WITH_STOCK));
-        assertEquals(ONE_ITEM, (long) cart.getCart().get(LEGAL_PHONE_WITH_STOCK));
+        assertTrue(cart.getProductId2Quantity().containsKey(LEGAL_PHONE_WITH_STOCK));
+        assertEquals(ONE_ITEM, (long) cart.getProductId2Quantity().get(LEGAL_PHONE_WITH_STOCK));
     }
 
     @Test
@@ -95,7 +79,7 @@ public class HttpSessionCartServiceTest {
         cartService.addPhone(LEGAL_PHONE_WITH_STOCK, ONE_ITEM, cart);
         cartService.addPhone(LEGAL_PHONE_WITH_STOCK, ONE_ITEM, cart);
 
-        assertTrue(cart.getCart().containsKey(LEGAL_PHONE_WITH_STOCK));
-        assertEquals(ONE_ITEM * 2, (long) cart.getCart().get(LEGAL_PHONE_WITH_STOCK));
+        assertTrue(cart.getProductId2Quantity().containsKey(LEGAL_PHONE_WITH_STOCK));
+        assertEquals(ONE_ITEM * 2, (long) cart.getProductId2Quantity().get(LEGAL_PHONE_WITH_STOCK));
     }
 }

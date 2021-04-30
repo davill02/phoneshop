@@ -1,10 +1,10 @@
 package com.es.core.model.phone;
 
-import com.es.core.utils.StringUtils;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.simple.SimpleJdbcInsert;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
@@ -182,14 +182,14 @@ public class JdbcPhoneDao implements PhoneDao {
     }
 
     private void validateOrder(String order) {
-        if (!StringUtils.isBlank(order)) {
+        if (StringUtils.hasText(order)) {
             if (!order.trim().equalsIgnoreCase(ASC) && !order.trim().equalsIgnoreCase(DESC))
                 throw new IllegalArgumentException(ILLEGAL_ORDER_MSG + order);
         }
     }
 
     private void validateSearchField(String sort) {
-        if (!StringUtils.isBlank(sort)) {
+        if (StringUtils.hasText(sort)) {
             long count = phoneMapper.getPropertyNames()
                     .stream()
                     .filter(sort::equalsIgnoreCase)
@@ -202,24 +202,34 @@ public class JdbcPhoneDao implements PhoneDao {
 
     @Override
     public Long countResultsFindAllOrderBy(String query) {
-        if (StringUtils.isBlank(query)) {
-            return jdbcTemplate.queryForObject(ALL_PHONES_COUNT, Long.class);
-        } else {
+        if (StringUtils.hasText(query)) {
             return jdbcTemplate.queryForObject(SEARCH_COUNT, Long.class, getRegex(query), getRegex(query));
+        } else {
+            return jdbcTemplate.queryForObject(ALL_PHONES_COUNT, Long.class);
         }
     }
 
     private List<Phone> getPhones(int offset, int limit, String order, String sort, String query) {
-        if (StringUtils.isBlank(order) && StringUtils.isBlank(sort) && StringUtils.isBlank(query)) {
-            return findAllOrderBy(offset, limit, "", COLUMN_ID);
-        }
-        if (!StringUtils.isBlank(query) && (StringUtils.isBlank(sort) || StringUtils.isBlank(order))) {
-            return rankSearch(offset, limit, RANK_SEARCH, query);
-        }
-        if (!StringUtils.isBlank(query) && !StringUtils.isBlank(sort) && !StringUtils.isBlank(order)) {
-            return rankSearch(offset, limit, order.trim(), sort.trim(), query);
+        if (StringUtils.hasText(query)) {
+            return searchByQuery(offset, limit, order, sort, query);
         } else {
-            return findAllOrderBy(offset, limit, order.trim(), sort.trim());
+            return findAllOrderBySelectedColumnOrById(offset, limit, order, sort);
+        }
+    }
+
+    private List<Phone> findAllOrderBySelectedColumnOrById(int offset, int limit, String order, String sort) {
+        if (!StringUtils.hasText(order) || !StringUtils.hasText(sort)) {
+            return findAllOrderBy(offset, limit, "", COLUMN_ID);
+        } else {
+            return findAllOrderBy(offset, limit, order, sort);
+        }
+    }
+
+    private List<Phone> searchByQuery(int offset, int limit, String order, String sort, String query) {
+        if (!StringUtils.hasText(order) || !StringUtils.hasText(sort)) {
+            return rankSearch(offset, limit, RANK_SEARCH, query);
+        } else {
+            return rankSearch(offset, limit, order, sort, query);
         }
     }
 

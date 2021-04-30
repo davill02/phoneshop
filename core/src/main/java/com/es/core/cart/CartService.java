@@ -4,8 +4,6 @@ import java.util.Map;
 
 public interface CartService {
 
-    Cart getCart(Cart cart);
-
     void addPhone(Long phoneId, Long quantity, Cart cart);
 
     /**

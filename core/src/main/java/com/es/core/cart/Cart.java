@@ -5,12 +5,12 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class Cart {
-    private Map<Long, Long> cart;
+    private Map<Long, Long> productId2Quantity;
     private Long quantity = 0L;
     private BigDecimal totalPrice = BigDecimal.ZERO;
 
     public Cart() {
-        this.cart = new ConcurrentHashMap<>();
+        this.productId2Quantity = new ConcurrentHashMap<>();
     }
 
     public Long getQuantity() {
@@ -29,11 +29,11 @@ public class Cart {
         this.totalPrice = totalPrice;
     }
 
-    public Map<Long, Long> getCart() {
-        return cart;
+    public Map<Long, Long> getProductId2Quantity() {
+        return productId2Quantity;
     }
 
-    public void setCart(Map<Long, Long> cart) {
-        this.cart = cart;
+    public void setProductId2Quantity(Map<Long, Long> productId2Quantity) {
+        this.productId2Quantity = productId2Quantity;
     }
 }

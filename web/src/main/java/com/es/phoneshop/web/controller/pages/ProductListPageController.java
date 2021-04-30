@@ -29,11 +29,18 @@ public class ProductListPageController {
     @RequestMapping(method = RequestMethod.GET)
     public String showProductList(Model model, @RequestParam(required = false) String query, @RequestParam(required = false) String order,
                                   @RequestParam(required = false) String sort, @RequestParam(required = false) Integer page, HttpSession session) {
-        session.setAttribute(CART_ATTR, cartService.getCart((Cart) session.getAttribute(CART_ATTR)));
+        createCartIfNotExist(session);
         model.addAttribute(COUNT_PHONES_ATTR, phoneDao.countResultsFindAllOrderBy(query));
         int p = (page != null) ? page : 1;
         model.addAttribute(PHONES_ATTR, phoneDao.findAllOrderBy(COUNT_PRODUCTS_ON_PAGE * (p - 1), COUNT_PRODUCTS_ON_PAGE, order, sort, query));
         return PRODUCT_LIST_PAGE;
     }
+
+    private void createCartIfNotExist(HttpSession session) {
+        if (session.getAttribute(CART_ATTR) == null) {
+            session.setAttribute(CART_ATTR, new Cart());
+        }
+    }
+
 
 }

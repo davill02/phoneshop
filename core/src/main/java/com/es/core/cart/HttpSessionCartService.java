@@ -2,6 +2,7 @@ package com.es.core.cart;
 
 import com.es.core.cart.exception.IllegalPhoneException;
 import com.es.core.cart.exception.OutOfStockException;
+import com.es.core.model.phone.Phone;
 import com.es.core.model.phone.PhoneDao;
 import com.es.core.model.phone.Stock;
 import org.springframework.stereotype.Service;
@@ -9,6 +10,8 @@ import org.springframework.stereotype.Service;
 import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 
 @Service
 public class HttpSessionCartService implements CartService {
@@ -20,26 +23,63 @@ public class HttpSessionCartService implements CartService {
     private PhoneDao phoneDao;
 
     @Override
-    public Cart getCart(Cart cart) {
-        if (cart == null) {
-            cart = new Cart();
-        }
-        return cart;
-    }
-
-    @Override
     public void addPhone(Long phoneId, Long quantity, Cart cart) {
         checkValues(quantity, cart);
         Stock stock = phoneDao.getStock(phoneId).orElseThrow(() -> new IllegalPhoneException(phoneId));
+        checkStock(phoneId, quantity, cart, stock);
+        cart.getProductId2Quantity().put(phoneId, quantity + cart.getProductId2Quantity().getOrDefault(phoneId, 0L));
+        cart.setTotalPrice(calculateTotalPrice(cart));
+        cart.setQuantity(calculateQuantity(cart));
+    }
+
+    private void validateAndFixCart(Cart cart) {
+        Set<Long> ids = cart.getProductId2Quantity().keySet();
+        for (Long id : ids) {
+            validateAndRemoveIfInvalidStock(cart, id);
+            validateAndRemoveIfInvalidQuantity(cart, id);
+        }
+    }
+
+    private void validateAndRemoveIfInvalidQuantity(Cart cart, Long id) {
+        Long quantity = cart.getProductId2Quantity().get(id);
+        if (quantity == null || quantity < 1) {
+            cart.getProductId2Quantity().remove(id);
+        }
+    }
+
+
+    private void validateAndRemoveIfInvalidStock(Cart cart, Long id) {
+        Optional<Stock> stock = phoneDao.getStock(id);
+        if (!stock.isPresent() || stock.get().getPhone().getPrice() == null) {
+            cart.getProductId2Quantity().remove(id);
+        }
+    }
+
+
+    private BigDecimal calculateTotalPrice(Cart validCart) {
+        return validCart.getProductId2Quantity().entrySet()
+                .stream()
+                .map(entry -> {
+                    Optional<Phone> phone = phoneDao.get(entry.getKey());
+                    BigDecimal price = BigDecimal.ZERO;
+                    if (phone.isPresent()) {
+                        price = phone.get().getPrice().multiply(BigDecimal.valueOf(entry.getValue()));
+                    }
+                    return price;
+                })
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+    }
+
+    private Long calculateQuantity(Cart validCart) {
+        return validCart.getProductId2Quantity().values().stream().reduce(0L, Long::sum);
+    }
+
+    private void checkStock(Long phoneId, Long quantity, Cart cart, Stock stock) {
         if (stock.getPhone().getPrice() == null) {
             throw new IllegalPhoneException(stock.getPhone().getModel());
         }
-        if (stock.getStock() - stock.getReserved() - quantity - cart.getCart().getOrDefault(phoneId, 0L) < 1) {
-            throw new OutOfStockException(stock.getPhone().getModel(), quantity + cart.getCart().getOrDefault(phoneId, 0L));
-        } else {
-            cart.getCart().put(phoneId, quantity + cart.getCart().getOrDefault(phoneId, 0L));
-            cart.setQuantity(cart.getQuantity() + quantity);
-            cart.setTotalPrice(cart.getTotalPrice().add(stock.getPhone().getPrice().multiply(BigDecimal.valueOf(quantity))));
+        if (stock.getStock() - stock.getReserved() - quantity - cart.getProductId2Quantity().getOrDefault(phoneId, 0L) < 1) {
+            throw new OutOfStockException(stock.getPhone().getModel(), quantity + cart.getProductId2Quantity().getOrDefault(phoneId, 0L));
         }
     }
 
@@ -58,13 +98,13 @@ public class HttpSessionCartService implements CartService {
     //TODO
     @Override
     public void update(Map<Long, Long> items, Cart cart) {
-        items.forEach((key, value) -> cart.getCart().put(key, value));
+        items.forEach((key, value) -> cart.getProductId2Quantity().put(key, value));
     }
 
     //TODO
     @Override
     public void remove(Long phoneId, Cart cart) {
-        cart.getCart().remove(phoneId);
+        cart.getProductId2Quantity().remove(phoneId);
     }
 
     public void setPhoneDao(PhoneDao phoneDao) {

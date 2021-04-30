@@ -172,7 +172,7 @@
                 quantity: count
             },
             success: function (data) {
-                let ob = JSON.parse(data)
+                let ob = data
                 if (ob.code === 0) {
                     for (let str of ob.message.toString().split('\n')) {
                         $('td[id=' + id.toString() + ']').append('<div id="' + id.toString() + '" class="text-danger">' + str + '</div>')

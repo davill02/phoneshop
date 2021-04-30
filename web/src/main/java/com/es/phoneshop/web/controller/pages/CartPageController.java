@@ -15,7 +15,6 @@ public class CartPageController {
 
     @RequestMapping(method = RequestMethod.GET)
     public void getCart() {
-        cartService.getCart(null);
     }
 
     @RequestMapping(method = RequestMethod.PUT)
