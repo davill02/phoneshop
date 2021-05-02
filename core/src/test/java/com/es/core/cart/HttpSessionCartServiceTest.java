@@ -8,6 +8,8 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import javax.annotation.Resource;
+import java.util.HashMap;
+import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -16,6 +18,7 @@ import static org.junit.Assert.assertTrue;
 @ContextConfiguration("/test-jdbc-phone-dao-conf.xml")
 public class HttpSessionCartServiceTest {
 
+    public static final long ITEM_3 = 3L;
     private static final long LEGAL_PHONE_WITH_STOCK = 1003L;
     private static final long OUT_OF_STOCK_QUANTITY = 1000L;
     private static final long ILLEGAL_PHONE = 1000L;
@@ -81,5 +84,34 @@ public class HttpSessionCartServiceTest {
 
         assertTrue(cart.getProductId2Quantity().containsKey(LEGAL_PHONE_WITH_STOCK));
         assertEquals(ONE_ITEM * 2, (long) cart.getProductId2Quantity().get(LEGAL_PHONE_WITH_STOCK));
+    }
+
+    @Test
+    public void shouldFixCartAndAddPhone() {
+        Cart cart = getInvalidCart();
+
+        cartService.addPhone(LEGAL_PHONE_WITH_STOCK, ITEM_3, cart);
+        int resultSize = cart.getProductId2Quantity().size();
+
+        assertEquals(1, resultSize);
+        assertEquals(ITEM_3, (long) cart.getQuantity());
+    }
+
+    private Cart getInvalidCart() {
+        Cart cart = new Cart();
+        Map<Long, Long> productIdToQuantity = new HashMap<>();
+        productIdToQuantity.put(null, 1L);
+        productIdToQuantity.put(1003L, null);
+        productIdToQuantity.put(1000L, 2L);
+        cart.setProductId2Quantity(productIdToQuantity);
+        return cart;
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void shouldAddPhoneWithIllegalCartByMap() {
+        Cart cart = new Cart();
+        cart.setProductId2Quantity(null);
+
+        cartService.addPhone(LEGAL_PHONE_WITH_STOCK, ITEM_3, cart);
     }
 }

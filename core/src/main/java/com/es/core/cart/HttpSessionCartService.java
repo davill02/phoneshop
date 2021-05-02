@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.math.BigDecimal;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -19,12 +20,14 @@ public class HttpSessionCartService implements CartService {
     private static final String QUANTITY_IS_NULL_EXCEPTION_MSG = "Quantity is null";
     private static final String CART_IS_NULL_EXCEPTION_MSG = "Cart is null";
     private static final String QUANTITY_IS_NEGATIVE_EXCEPTION_MESSAGE = "Quantity can't be negative";
+    public static final String MAP_PHONE_ID_2_QUANTITY_IS_NULL = ": map phoneId2Quantity is null";
     @Resource
     private PhoneDao phoneDao;
 
     @Override
     public void addPhone(Long phoneId, Long quantity, Cart cart) {
         checkValues(quantity, cart);
+        validateAndFixCart(cart);
         Stock stock = phoneDao.getStock(phoneId).orElseThrow(() -> new IllegalPhoneException(phoneId));
         checkStock(phoneId, quantity, cart, stock);
         cart.getProductId2Quantity().put(phoneId, quantity + cart.getProductId2Quantity().getOrDefault(phoneId, 0L));
@@ -33,7 +36,7 @@ public class HttpSessionCartService implements CartService {
     }
 
     private void validateAndFixCart(Cart cart) {
-        Set<Long> ids = cart.getProductId2Quantity().keySet();
+        Set<Long> ids = new HashSet<>(cart.getProductId2Quantity().keySet());
         for (Long id : ids) {
             validateAndRemoveIfInvalidStock(cart, id);
             validateAndRemoveIfInvalidQuantity(cart, id);
@@ -66,8 +69,7 @@ public class HttpSessionCartService implements CartService {
                         price = phone.get().getPrice().multiply(BigDecimal.valueOf(entry.getValue()));
                     }
                     return price;
-                })
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
+                }).reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 
     private Long calculateQuantity(Cart validCart) {
@@ -87,24 +89,38 @@ public class HttpSessionCartService implements CartService {
         if (quantity == null) {
             throw new IllegalArgumentException(QUANTITY_IS_NULL_EXCEPTION_MSG);
         }
-        if (cart == null) {
-            throw new IllegalArgumentException(CART_IS_NULL_EXCEPTION_MSG);
-        }
+        validateCart(cart);
         if (quantity < 1) {
             throw new IllegalArgumentException(QUANTITY_IS_NEGATIVE_EXCEPTION_MESSAGE);
         }
     }
 
-    //TODO
-    @Override
-    public void update(Map<Long, Long> items, Cart cart) {
-        items.forEach((key, value) -> cart.getProductId2Quantity().put(key, value));
+    private void validateCart(Cart cart) {
+        if (cart == null) {
+            throw new IllegalArgumentException(CART_IS_NULL_EXCEPTION_MSG);
+        }
+        if (cart.getProductId2Quantity() == null) {
+            throw new IllegalArgumentException(CART_IS_NULL_EXCEPTION_MSG + MAP_PHONE_ID_2_QUANTITY_IS_NULL);
+        }
     }
 
-    //TODO
+
+    @Override
+    public void update(Map<Long, Long> items, Cart cart) {
+        if (items == null) {
+            throw new IllegalArgumentException();
+        }
+        validateCart(cart);
+        cart.getProductId2Quantity().putAll(items);
+        validateAndFixCart(cart);
+    }
+
     @Override
     public void remove(Long phoneId, Cart cart) {
+        validateCart(cart);
         cart.getProductId2Quantity().remove(phoneId);
+        cart.setQuantity(calculateQuantity(cart));
+        cart.setTotalPrice(calculateTotalPrice(cart));
     }
 
     public void setPhoneDao(PhoneDao phoneDao) {

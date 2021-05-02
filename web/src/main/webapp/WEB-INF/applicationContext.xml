@@ -11,7 +11,6 @@
     <import resource="classpath:context/applicationContext-core.xml"/>
     <import resource="classpath:context/applicationContext-demoda.xml"/>
     <context:property-placeholder location="/WEB-INF/conf/application.properties"/>
-    <mvc:annotation-driven conversion-service="conversionService"/>
     <bean id="conversionService"
           class="org.springframework.context.support.ConversionServiceFactoryBean">
         <property name="converters">
