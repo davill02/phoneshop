@@ -20,7 +20,7 @@
     ${cart}
 </div>
 <nav class="navbar navbar-light bg-light">
-    <a class="navbar-brand" href="#">
+    <a class="navbar-brand" href="${pageContext.servletContext.contextPath}/productList">
         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-phone"
              viewBox="0 0 16 16">
             <path d="M11 1a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1h6zM5 0a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2H5z"></path>
@@ -30,9 +30,12 @@
     </a>
     <ul class="navbar-nav me-auto">
         <li class="nav-item">
-            <a href="#" class="nav-link">Cart </a>
-            <div id="quantity">Quantity: ${cart.quantity} </div>
-            <div id="price">Price: ${cart.totalPrice} $</div>
+            <div class="btn-group" role="group">
+                <a href="${pageContext.servletContext.contextPath}/cart" class="btn btn-primary">Cart</a>
+                <button id="quantity" type="button" class="btn btn-primary" disabled>
+                    Quantity: ${cart.quantity} </button>
+                <button id="price" type="button" class="btn btn-primary" disabled>Price: ${cart.totalPrice} $</button>
+            </div>
         </li>
     </ul>
     <ul class="navbar-nav">
@@ -166,7 +169,7 @@
         let count = $('input[id=' + id.toString() + ']').val()
         $('div[id=' + id.toString() + ']').remove()
         $.ajax({
-            url: 'http://localhost:8080/phoneshop-web/ajaxCart',
+            url: '${pageContext.servletContext.contextPath}/ajaxCart',
             method: 'post',
             data: {
                 phoneId: id,
@@ -187,6 +190,8 @@
             }
         });
     })
+
+
 
 
 

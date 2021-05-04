@@ -2,17 +2,21 @@ package com.es.phoneshop.web.controller.pages;
 
 import com.es.core.model.phone.Phone;
 import com.es.core.model.phone.PhoneDao;
+import com.es.phoneshop.web.controller.ControllerUtils;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.ResponseStatus;
 
 import javax.annotation.Resource;
+import javax.servlet.http.HttpSession;
 import java.util.Optional;
 
-import static com.es.phoneshop.web.controller.pages.ControllersConstants.PHONE_DETAILS;
+import static com.es.phoneshop.web.controller.pages.ControllersConstants.PHONE_DETAILS_ATTR;
 import static com.es.phoneshop.web.controller.pages.ControllersConstants.PHONE_DETAILS_PAGE;
 
 @Controller
@@ -22,19 +26,21 @@ public class ProductDetailsPageController {
     private PhoneDao phoneDao;
 
     @RequestMapping(value = "/{id}", method = RequestMethod.GET)
-    public String showProductDetails(Model model, @PathVariable("id") String id) {
+    public String showProductDetails(Model model, @PathVariable("id") String id, HttpSession session) {
+        ControllerUtils.createCartIfNotExist(session);
         Optional<Phone> phone = phoneDao.get(Long.valueOf(id));
         if (phone.isPresent()) {
-            model.addAttribute(PHONE_DETAILS, phone.get());
+            model.addAttribute(PHONE_DETAILS_ATTR, phone.get());
             return PHONE_DETAILS_PAGE;
         }
-        return "phone-not-found";
+        return "phoneNotFound";
     }
 
-    @ExceptionHandler(Exception.class)
-    public void exceptionHandler(Exception e) {
-        System.out.println(e.getMessage());
-        System.out.println(e.getClass());
-        e.printStackTrace();
+
+    @ExceptionHandler(NumberFormatException.class)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public String returnProductNotFound() {
+        return "phoneNotFound";
     }
+
 }

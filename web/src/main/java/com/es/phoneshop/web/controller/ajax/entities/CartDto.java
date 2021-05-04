@@ -2,21 +2,21 @@ package com.es.phoneshop.web.controller.ajax.entities;
 
 import java.math.BigDecimal;
 
-public class CartDTO {
+public class CartDto {
     private int code;
     private String message;
     private BigDecimal totalPrice;
     private Long quantity;
 
-    public CartDTO() {
+    public CartDto() {
     }
 
-    public CartDTO(int code, String message) {
+    public CartDto(int code, String message) {
         this.code = code;
         this.message = message;
     }
 
-    public CartDTO(int code, String message, BigDecimal totalPrice, Long quantity) {
+    public CartDto(int code, String message, BigDecimal totalPrice, Long quantity) {
         this.code = code;
         this.message = message;
         this.totalPrice = totalPrice;
