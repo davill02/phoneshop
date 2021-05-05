@@ -57,6 +57,9 @@ public class Phone {
 
     private String description;
 
+    public Phone() {
+    }
+
     public String getBrand() {
         return brand;
     }

@@ -5,6 +5,9 @@ public class Stock {
     private Integer stock;
     private Integer reserved;
 
+    public Stock() {
+    }
+
     public Phone getPhone() {
         return phone;
     }

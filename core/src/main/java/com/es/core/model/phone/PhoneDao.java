@@ -9,4 +9,10 @@ public interface PhoneDao {
     void save(Phone phone);
 
     List<Phone> findAll(int offset, int limit);
+
+    List<Phone> findAllOrderBy(int offset, int limit, String order, String searchField, String searchRequest);
+
+    Long countResultsFindAllOrderBy(String searchRequest);
+
+    Optional<Stock> getStock(Long key);
 }

@@ -4,16 +4,13 @@ import java.util.Map;
 
 public interface CartService {
 
-    Cart getCart();
-
-    void addPhone(Long phoneId, Long quantity);
+    void addPhone(Long phoneId, Long quantity, Cart cart);
 
     /**
-     * @param items
-     * key: {@link com.es.core.model.phone.Phone#id}
-     * value: quantity
+     * @param items key: phoneId
+     *              value: quantity
      */
-    void update(Map<Long, Long> items);
+    void update(Map<Long, Long> items, Cart cart);
 
-    void remove(Long phoneId);
+    void remove(Long phoneId, Cart cart);
 }
