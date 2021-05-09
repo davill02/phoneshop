@@ -22,6 +22,7 @@ import javax.servlet.http.HttpSession;
 import javax.validation.Valid;
 import java.util.Map;
 
+import static com.es.phoneshop.web.controller.pages.ControllersConstants.BINDING_RESULT_UPDATE_FORM_ATTR;
 import static com.es.phoneshop.web.controller.pages.ControllersConstants.CART_ATTR;
 import static com.es.phoneshop.web.controller.pages.ControllersConstants.UPDATE_FORM_ATTR;
 
@@ -29,7 +30,6 @@ import static com.es.phoneshop.web.controller.pages.ControllersConstants.UPDATE_
 @SessionAttributes(UPDATE_FORM_ATTR)
 @RequestMapping(value = "/cart")
 public class CartPageController {
-    public static final String BINDING_RESULT_ATTR = "org.springframework.validation.BindingResult.updateForm";
     @Resource
     private CartService cartService;
     @Resource
@@ -37,7 +37,7 @@ public class CartPageController {
     @Resource
     private ConversionService conversionService;
 
-    @InitBinder
+    @InitBinder(UPDATE_FORM_ATTR)
     public void init(WebDataBinder dataBinder) {
         dataBinder.setValidator(validator);
     }
@@ -60,7 +60,7 @@ public class CartPageController {
         if (!bindingResult.hasErrors()) {
             cartService.update(conversionService.convert(updateForm, Map.class), (Cart) session.getAttribute(CART_ATTR));
         } else {
-            redirectAttributes.addFlashAttribute(BINDING_RESULT_ATTR, bindingResult);
+            redirectAttributes.addFlashAttribute(BINDING_RESULT_UPDATE_FORM_ATTR, bindingResult);
         }
         return "redirect:cart";
     }

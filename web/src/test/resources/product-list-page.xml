@@ -12,8 +12,8 @@
     </context:component-scan>
     <mvc:annotation-driven/>
 
-    <bean id="phoneDao" class="org.mockito.Mockito" factory-method="mock">
-        <constructor-arg value="com.es.core.model.phone.PhoneDao"/>
+    <bean id="phoneService" class="org.mockito.Mockito" factory-method="mock">
+        <constructor-arg value="com.es.core.model.phone.PhoneService"/>
     </bean>
 
     <bean class="org.springframework.web.servlet.view.InternalResourceViewResolver">

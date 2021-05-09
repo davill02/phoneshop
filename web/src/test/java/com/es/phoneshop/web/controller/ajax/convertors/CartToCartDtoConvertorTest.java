@@ -9,19 +9,19 @@ import java.math.BigDecimal;
 
 import static org.junit.Assert.assertEquals;
 
-public class CartToCartDtoTest {
+public class CartToCartDtoConvertorTest {
     @Test
     public void shouldConvertCart() {
         Cart cart = new Cart();
         cart.setQuantity(100L);
         cart.setTotalPrice(BigDecimal.TEN);
-        CartToCartDto cartToCartDTO = new CartToCartDto();
+        CartToCartDtoConvertor cartToCartDTOConvertor = new CartToCartDtoConvertor();
 
-        CartDto cartDTO = cartToCartDTO.convert(cart);
+        CartDto cartDTO = cartToCartDTOConvertor.convert(cart);
 
         assertEquals(cart.getQuantity(), cartDTO.getQuantity());
         assertEquals(cart.getTotalPrice(), cartDTO.getTotalPrice());
-        assertEquals(cartToCartDTO.ADDED_TO_CART_MSG, cartDTO.getMessage());
-        assertEquals(AjaxMessageCode.SUCCESS.code, cartDTO.getCode());
+        assertEquals(cartToCartDTOConvertor.ADDED_TO_CART_MSG, cartDTO.getMessage());
+        assertEquals(AjaxMessageCode.SUCCESS.getCode(), cartDTO.getCode());
     }
 }

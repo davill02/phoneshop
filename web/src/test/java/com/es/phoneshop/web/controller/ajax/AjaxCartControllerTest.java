@@ -3,7 +3,7 @@ package com.es.phoneshop.web.controller.ajax;
 import com.es.core.cart.Cart;
 import com.es.core.cart.CartService;
 import com.es.core.cart.exception.IllegalPhoneException;
-import com.es.phoneshop.web.controller.ajax.convertors.CartToCartDto;
+import com.es.phoneshop.web.controller.ajax.convertors.CartToCartDtoConvertor;
 import com.es.phoneshop.web.controller.ajax.entities.CartDto;
 import com.es.phoneshop.web.controller.ajax.entities.ExceptionMessageDto;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -59,13 +59,13 @@ public class AjaxCartControllerTest {
     @Test
     public void shouldReturnOk() throws Exception {
         ObjectMapper mapper = new ObjectMapper();
-        String jsonString = mapper.writeValueAsString(new CartDto(AjaxMessageCode.SUCCESS.code, CartToCartDto.ADDED_TO_CART_MSG, BigDecimal.TEN, 100L));
+        String jsonString = mapper.writeValueAsString(new CartDto(AjaxMessageCode.SUCCESS.getCode(), CartToCartDtoConvertor.ADDED_TO_CART_MSG, BigDecimal.TEN, 100L));
 
         mockMvc.perform(post(AJAX_CART_PATH)
                 .content(VALID_FORM)
                 .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                 .session(session))
-                .andExpect(status().isOk())
+                .andExpect(status().isCreated())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8))
                 .andExpect(content().string(jsonString));
     }
@@ -74,7 +74,7 @@ public class AjaxCartControllerTest {
     public void shouldReturnOkWithExceptionMessage() throws Exception {
         doThrow(new IllegalPhoneException()).when(cartService).addPhone(anyLong(), anyLong(), any());
         ObjectMapper mapper = new ObjectMapper();
-        String jsonString = mapper.writeValueAsString(new ExceptionMessageDto(AjaxMessageCode.ERROR.code, IllegalPhoneException.EXCEPTION_ILLEGAL_PHONE));
+        String jsonString = mapper.writeValueAsString(new ExceptionMessageDto(AjaxMessageCode.ERROR.getCode(), IllegalPhoneException.EXCEPTION_ILLEGAL_PHONE));
 
         standaloneSetup(new AjaxCartController(cartService)).build()
                 .perform(post(AJAX_CART_PATH)
@@ -87,7 +87,7 @@ public class AjaxCartControllerTest {
     @Test
     public void shouldReturnOkWithNotValidData() throws Exception {
         ObjectMapper mapper = new ObjectMapper();
-        String jsonString = mapper.writeValueAsString(new ExceptionMessageDto(AjaxMessageCode.ERROR.code, "Quantity can't be string\n"));
+        String jsonString = mapper.writeValueAsString(new ExceptionMessageDto(AjaxMessageCode.ERROR.getCode(), "Quantity can't be string\n"));
 
         mockMvc.perform(post(AJAX_CART_PATH)
                 .content(INVALID_QUANTITY)

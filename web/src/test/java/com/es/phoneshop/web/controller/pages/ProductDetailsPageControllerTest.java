@@ -2,7 +2,7 @@ package com.es.phoneshop.web.controller.pages;
 
 import com.es.core.cart.Cart;
 import com.es.core.model.phone.Phone;
-import com.es.core.model.phone.PhoneDao;
+import com.es.core.model.phone.PhoneService;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -33,7 +33,7 @@ public class ProductDetailsPageControllerTest {
     @Resource
     private WebApplicationContext webApplicationContext;
     @Resource
-    private PhoneDao mockPhoneDao;
+    private PhoneService mockPhoneService;
 
     private MockMvc mockMvc;
     private MockHttpSession session;
@@ -48,7 +48,7 @@ public class ProductDetailsPageControllerTest {
 
     @Test
     public void shouldGetPhone() throws Exception {
-        when(mockPhoneDao.get(anyLong())).thenReturn(Optional.of(new Phone()));
+        when(mockPhoneService.get(anyLong())).thenReturn(Optional.of(new Phone()));
 
         mockMvc.perform(get("/productDetails/2"))
                 .andExpect(status().isOk())
@@ -57,7 +57,7 @@ public class ProductDetailsPageControllerTest {
     }
     @Test
     public void shouldNotFindPhone() throws Exception {
-        when(mockPhoneDao.get(anyLong())).thenReturn(Optional.empty());
+        when(mockPhoneService.get(anyLong())).thenReturn(Optional.empty());
 
         mockMvc.perform(get("/productDetails/2"))
                 .andExpect(status().isOk())
@@ -65,7 +65,7 @@ public class ProductDetailsPageControllerTest {
     }
     @Test
     public void shouldNotFindPhoneByStringId() throws Exception {
-        when(mockPhoneDao.get(anyLong())).thenReturn(Optional.empty());
+        when(mockPhoneService.get(anyLong())).thenReturn(Optional.empty());
 
         mockMvc.perform(get("/productDetails/sdghfdg"))
                 .andExpect(status().isNotFound())

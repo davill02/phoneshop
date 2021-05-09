@@ -27,7 +27,7 @@ public class HttpSessionCartService implements CartService {
     @Override
     public void addPhone(Long phoneId, Long quantity, Cart cart) {
         checkValues(quantity, cart);
-        removeNulls(cart);
+        removeInvalidCartItems(cart);
         Stock stock = phoneDao.getStock(phoneId).orElseThrow(() -> new IllegalPhoneException(phoneId));
         checkStock(phoneId, quantity, cart, stock);
         CartItem cartItem = findCartItemById(cart, phoneId).orElse(new CartItem());
@@ -36,19 +36,27 @@ public class HttpSessionCartService implements CartService {
         }
         cartItem.setPhone(stock.getPhone());
         cartItem.setQuantity(cartItem.getQuantity() + quantity);
+        recalculateCart(cart);
+    }
+
+    private void recalculateCart(Cart cart) {
         cart.setTotalPrice(calculateTotalPrice(cart));
         cart.setQuantity(calculateQuantity(cart));
     }
 
-    private void removeNulls(Cart cart) {
+    private void removeInvalidCartItems(Cart cart) {
         List<CartItem> validCartItems = cart.getItems().stream()
-                .filter(cartItem -> cartItem != null
-                        && cartItem.getPhone() != null
-                        && cartItem.getPhone().getId() != null
-                        && cartItem.getQuantity() != null
-                        && cartItem.getPhone().getPrice() != null)
+                .filter(this::isValidCartItem)
                 .collect(Collectors.toList());
         cart.setItems(validCartItems);
+    }
+
+    private boolean isValidCartItem(CartItem cartItem) {
+        return cartItem != null
+                && cartItem.getPhone() != null
+                && cartItem.getPhone().getId() != null
+                && cartItem.getQuantity() != null
+                && cartItem.getPhone().getPrice() != null;
     }
 
     public Optional<CartItem> findCartItemById(Cart cart, Long id) {
@@ -110,18 +118,18 @@ public class HttpSessionCartService implements CartService {
         if (validItems == null) {
             throw new IllegalArgumentException(MAP_CAN_T_BE_NULL_MSG);
         }
-        removeNulls(cart);
+        validateCart(cart);
+        removeInvalidCartItems(cart);
         validItems.forEach((id, quantity) -> {
             Optional<CartItem> cartItem = findCartItemById(cart, id);
             cartItem.ifPresent(item -> item.setQuantity(quantity));
         });
-        cart.setTotalPrice(calculateTotalPrice(cart));
-        cart.setQuantity(calculateQuantity(cart));
+        recalculateCart(cart);
     }
 
     @Override
     public void remove(Long phoneId, Cart cart) {
-        removeNulls(cart);
+        removeInvalidCartItems(cart);
         cart.setItems(removeCartItemByIdAhdReturnCartItems(phoneId, cart));
         cart.setQuantity(calculateQuantity(cart));
         cart.setTotalPrice(calculateTotalPrice(cart));
