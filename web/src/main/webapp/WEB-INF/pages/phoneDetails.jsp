@@ -109,32 +109,39 @@
             </table>
         </div>
     </div>
+    <div class="row">
+        <div class="col-6"></div>
+        <div class="col-6">
+            <table class="table table-bordered">
+                <thead><p class="fw-bold">Battery</p></thead>
+                <tags:notNull name="Talk time" additionText="h" value="${phoneDetails.talkTimeHours}"/>
+                <tags:notNull name="Stand by time" value="${phoneDetails.standByTimeHours}" additionText="h"/>
+                <tags:notNull value="${phoneDetails.batteryCapacityMah}" name="Battery capacity"
+                              additionText="Mah"/>
+            </table>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-6">
+        </div>
+        <div class="col-6">
+            <table class="table table-bordered">
+                <thead><p class="fw-bold">Other</p></thead>
+                <tags:notNull name="Device type" value="${phoneDetails.deviceType}"/>
+                <tags:notNull name="Bluetooth" value="${phoneDetails.bluetooth}"/>
+                <tags:notNull name="Os" value="${phoneDetails.os}"/>
+                <tags:notNull name="RAM" value="${phoneDetails.ramGb}" additionText="Gb"/>
+                <tags:notNull name="Storage" value="${phoneDetails.internalStorageGb}" additionText="Gb"/>
+            </table>
+        </div>
+    </div>
 
-</div>
-<div class="row">
-    <div class="col-6"></div>
-    <div class="col-6">
-        <table class="table table-bordered">
-            <thead><p class="fw-bold">Battery</p></thead>
-            <tags:notNull name="Talk time" additionText="h" value="${phoneDetails.talkTimeHours}"/>
-            <tags:notNull name="Stand by time" value="${phoneDetails.standByTimeHours}" additionText="h"/>
-            <tags:notNull value="${phoneDetails.batteryCapacityMah}" name="Battery capacity"
-                          additionText="Mah"/>
-        </table>
-    </div>
-</div>
-<div class="row">
-    <div class="col-6">
-    </div>
-    <div class="col-6">
-        <table class="table table-bordered">
-            <thead><p class="fw-bold">Other</p></thead>
-            <tags:notNull name="Device type" value="${phoneDetails.deviceType}"/>
-            <tags:notNull name="Bluetooth" value="${phoneDetails.bluetooth}"/>
-            <tags:notNull name="Os" value="${phoneDetails.os}"/>
-            <tags:notNull name="RAM" value="${phoneDetails.ramGb}" additionText="Gb"/>
-            <tags:notNull name="Storage" value="${phoneDetails.internalStorageGb}" additionText="Gb"/>
-        </table>
+    <div class="row">
+        <div class="col-4">
+            <a class="btn btn-primary" href="${pageContext.servletContext.contextPath}/productList">Back to product list</a>
+        </div>
+        <div class="col-8">
+        </div>
     </div>
 </div>
 <script type="text/javascript">
@@ -164,6 +171,10 @@
             }
         });
     })
+
+
+
+
 
 
 

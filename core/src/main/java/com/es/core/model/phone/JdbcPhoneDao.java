@@ -55,6 +55,8 @@ public class JdbcPhoneDao implements PhoneDao {
     private static final String ILLEGAL_ARGUMENT_MSG = "phone or phone.getBrand() or phone. getModel() is null";
     private static final String ILLEGAL_SEARCH_FIELD_MSG = "searchField cant be ";
     private static final char WHITESPACE = ' ';
+    private static final String COUNT_IS_NULL_MSG = "Count is null";
+    private static final String COUNT_IS_MORE_THAN_STOCK_MSG = "Count is more than stock";
 
 
     @Resource
@@ -77,10 +79,19 @@ public class JdbcPhoneDao implements PhoneDao {
         if (key == null) {
             return Optional.empty();
         }
-        Optional<Phone> phone = Optional.ofNullable(
-                jdbcTemplate.queryForObject(SELECT_PHONE_BY_ID, new BeanPropertyRowMapper<>(Phone.class), key));
+        Optional<Phone> phone = getOptionalPhone(key);
         phone.ifPresent(this::setColors);
         return phone;
+    }
+
+    private Optional<Phone> getOptionalPhone(Long key) {
+        List<Phone> phones =
+                jdbcTemplate.query(SELECT_PHONE_BY_ID, new BeanPropertyRowMapper<>(Phone.class), key);
+        Optional<Phone> result = Optional.empty();
+        if (phones.size() != 0) {
+            result = Optional.of(phones.get(0));
+        }
+        return result;
     }
 
     public Optional<Stock> getStock(final Long key) {
@@ -254,6 +265,23 @@ public class JdbcPhoneDao implements PhoneDao {
 
     private String getRegex(String request) {
         return request.toLowerCase().trim().replace(WHITESPACE, '|');
+    }
+
+    public void decreaseStock(Long key, Long count) {
+        if (count == null) {
+            throw new IllegalArgumentException(COUNT_IS_NULL_MSG);
+        }
+        Optional<Stock> stock = getStock(key);
+        stock.ifPresent(next -> {
+            validateCount(count, next);
+            jdbcTemplate.update("UPDATE stocks SET stock = ? WHERE phoneId = ?", next.getStock() - count, next.getPhone().getId());
+        });
+    }
+
+    private void validateCount(Long count, Stock next) {
+        if (next.getStock() - count < 0) {
+            throw new IllegalArgumentException(COUNT_IS_MORE_THAN_STOCK_MSG);
+        }
     }
 
     public void setJdbcTemplate(JdbcTemplate jdbcTemplate) {

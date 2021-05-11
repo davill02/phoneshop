@@ -2,9 +2,8 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="tags" tagdir="/WEB-INF/tags" %>
 <%@ taglib prefix="form" uri="http://www.springframework.org/tags/form" %>
-<jsp:useBean id="cart" type="com.es.core.cart.Cart" scope="session"/>
+<jsp:useBean id="order" type="com.es.core.model.order.Order" scope="session"/>
 <head>
-
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta3/dist/css/bootstrap.min.css" rel="stylesheet"
           integrity="sha384-eOJMYsd53ii+scO/bJGFsiCZc+5NDVN2yr8+0RDqr0Ql0h+rP48ckxlpbzKgwra6" crossorigin="anonymous">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta3/dist/js/bootstrap.bundle.min.js"
@@ -44,77 +43,54 @@
 </nav>
 
 <div class="container mt-5">
-    <form:form id="putForm" method="put" commandName="updateForm">
+    <div class="row">
         <table class="table table-bordered border-primary align-middle caption-top">
             <thead>
             <tr>
                 <td>Image</td>
-                <td>Brand
-                </td>
-                <td>Model
-                </td>
+                <td>Brand</td>
+                <td>Model</td>
                 <td>Colors</td>
-                <td>Display size
-                </td>
-                <td>Price
-                </td>
-                <td>
-                    Quantity
-                </td>
-                <td>
-                    Add to
-                </td>
+                <td>Display size</td>
+                <td>Price</td>
+                <td>Quantity</td>
             </tr>
             </thead>
 
-            <c:forEach var="cartItem" items="${cart.items}" varStatus="counter">
+            <c:forEach var="orderItem" items="${order.orderItems}" varStatus="counter">
                 <tr>
                     <td>
                         <img height="150px" width="150px" class="img-thumbnail"
                              src="https://raw.githubusercontent.com/andrewosipenko/phoneshop-ext-images/master/${cartItem.phone.imageUrl}"
                              alt="Picture">
                     </td>
-                    <td>${cartItem.phone.brand}</td>
+                    <td>${orderItem.phone.brand}</td>
                     <td>
-                        <a href="${pageContext.servletContext.contextPath}/productDetails/${cartItem.phone.id}">${cartItem.phone.model}</a>
-                    </td>
-                    <td><c:forEach var="color" items="${cartItem.phone.colors}">
-                        ${color.code}
-                    </c:forEach></td>
-                    <td>${cartItem.phone.displaySizeInches}"</td>
-                    <td>$ ${cartItem.phone.price}</td>
-                    <td id="${cartItem.phone.id}"><label for="${cartItem.phone.id}"></label>
-                        <input type="hidden" name="phoneId" value="${cartItem.phone.id}">
-                        <form:input path="quantity[${counter.count -1}]" name="quantity"
-                                    class="form-control"
-                                    id="${cartItem.phone.id}" type="text"/>
-                        <p class="text-danger"><form:errors path="phoneId[${counter.count - 1}]"/></p>
-                        <p class="text-danger"><form:errors path="quantity[${counter.count - 1}]"/></p>
+                        <a href="${pageContext.servletContext.contextPath}/productDetails/${orderItem.phone.id}">${orderItem.phone.model}</a>
                     </td>
                     <td>
-                        <form:form form:id="deleteForm" method="delete">
-                            <button id="deleteForm" class="btn btn-outline-danger" type="submit" name="id"
-                                    value="${cartItem.phone.id}">Remove
-                            </button>
-                        </form:form>
+                        <c:forEach var="color" items="${orderItem.phone.colors}">
+                            ${color.code}
+                        </c:forEach>
                     </td>
+                    <td>${orderItem.phone.displaySizeInches}"</td>
+                    <td>$ ${orderItem.phone.price}</td>
+                    <td>${orderItem.quantity}</td>
                 </tr>
             </c:forEach>
-
         </table>
-    </form:form>
+    </div>
     <div class="row">
-        <div class="col-4">
-            <a class="btn btn-primary" href="${pageContext.servletContext.contextPath}/productList">Back to product
-                list</a>
+        <div class="col-5">
+            <form:form method="post" commandName="personalDataForm">
+                <table class="table table-responsive">
+                    <tags:inputRow path="firstname" title="First name"></tags:inputRow>
+                    <tags:inputRow path="lastname" title="Last name"></tags:inputRow>
+                    <tags:inputRow path="phoneNumber" title="Pnone number"></tags:inputRow>
+                    <tags:inputRow path="deliveryAddress" title="Delivery address"></tags:inputRow>
+                </table>
+                <input type="submit" class="btn btn-primary">
+            </form:form>
         </div>
-        <div class="col-6"></div>
-        <div class="col-1">
-            <button class="btn btn-info" type="submit" name="action" value="update" id="putForm">Update</button>
-        </div>
-        <div class="col-1">
-            <button class="btn btn-success" type="submit" name="action" value="order" id="putForm">Order</button>
-        </div>
-
     </div>
 </div>
