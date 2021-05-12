@@ -1,16 +1,16 @@
 package com.es.core.cart;
 
 import java.math.BigDecimal;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.ArrayList;
+import java.util.List;
 
 public class Cart {
-    private Map<Long, Long> productId2Quantity;
+    private List<CartItem> items;
     private Long quantity = 0L;
     private BigDecimal totalPrice = BigDecimal.ZERO;
 
     public Cart() {
-        this.productId2Quantity = new ConcurrentHashMap<>();
+        items = new ArrayList<>();
     }
 
     public Long getQuantity() {
@@ -29,11 +29,11 @@ public class Cart {
         this.totalPrice = totalPrice;
     }
 
-    public Map<Long, Long> getProductId2Quantity() {
-        return productId2Quantity;
+    public List<CartItem> getItems() {
+        return items;
     }
 
-    public void setProductId2Quantity(Map<Long, Long> productId2Quantity) {
-        this.productId2Quantity = productId2Quantity;
+    public void setItems(List<CartItem> items) {
+        this.items = items;
     }
 }

@@ -4,8 +4,8 @@ import com.es.core.cart.Cart;
 import com.es.core.cart.CartService;
 import com.es.core.cart.exception.IllegalPhoneException;
 import com.es.core.cart.exception.OutOfStockException;
-import com.es.phoneshop.web.controller.ajax.entities.CartDTO;
-import com.es.phoneshop.web.controller.ajax.entities.ExceptionMessageDTO;
+import com.es.phoneshop.web.controller.ajax.entities.CartDto;
+import com.es.phoneshop.web.controller.ajax.entities.ExceptionMessageDto;
 import com.es.phoneshop.web.controller.ajax.entities.PhoneAddingForm;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
@@ -43,11 +43,11 @@ public class AjaxCartController {
     @RequestMapping(method = RequestMethod.POST)
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
-    public CartDTO addPhone(@Valid PhoneAddingForm phoneAddingForm, HttpSession session) {
+    public CartDto addPhone(@Valid PhoneAddingForm phoneAddingForm, HttpSession session) {
         createCartIfNotExist(session);
         Cart currentCart = (Cart) session.getAttribute(CART_ATTR);
         cartService.addPhone(phoneAddingForm.getPhoneId(), Long.parseLong(phoneAddingForm.getQuantity()), currentCart);
-        return conversionService.convert(currentCart, CartDTO.class);
+        return conversionService.convert(currentCart, CartDto.class);
     }
 
     private void createCartIfNotExist(HttpSession session) {
@@ -60,19 +60,19 @@ public class AjaxCartController {
     @ExceptionHandler({BindException.class})
     @ResponseBody
     @ResponseStatus(HttpStatus.OK)
-    public ExceptionMessageDTO handleBindException(BindException exception) {
+    public ExceptionMessageDto handleBindException(BindException exception) {
         StringBuilder builder = new StringBuilder();
         if (exception.getBindingResult() != null) {
             exception.getAllErrors().forEach(ex -> builder.append(ex.getDefaultMessage()).append("\n"));
         }
-        return new ExceptionMessageDTO(AjaxMessageCode.ERROR.code, builder.toString());
+        return new ExceptionMessageDto(AjaxMessageCode.ERROR.code, builder.toString());
     }
 
     @ExceptionHandler({OutOfStockException.class, IllegalPhoneException.class})
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
-    public ExceptionMessageDTO handleCartException(RuntimeException exception) {
-        return new ExceptionMessageDTO(AjaxMessageCode.ERROR.code, exception.getMessage());
+    public ExceptionMessageDto handleCartException(RuntimeException exception) {
+        return new ExceptionMessageDto(AjaxMessageCode.ERROR.code, exception.getMessage());
     }
 
 }

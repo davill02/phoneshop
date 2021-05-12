@@ -1,13 +1,13 @@
 package com.es.phoneshop.web.controller.ajax.entities;
 
-public class ExceptionMessageDTO {
+public class ExceptionMessageDto {
     private int code;
     private String message;
 
-    public ExceptionMessageDTO() {
+    public ExceptionMessageDto() {
     }
 
-    public ExceptionMessageDTO(int code, String message) {
+    public ExceptionMessageDto(int code, String message) {
         this.code = code;
         this.message = message;
     }
