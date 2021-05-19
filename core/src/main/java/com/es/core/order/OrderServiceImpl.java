@@ -6,6 +6,7 @@ import com.es.core.model.order.OrderDao;
 import com.es.core.model.order.OrderItem;
 import com.es.core.model.order.OrderStatus;
 import com.es.core.model.phone.PhoneDao;
+import com.es.core.model.phone.Stock;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -18,6 +19,7 @@ import java.util.Optional;
 
 @Service
 public class OrderServiceImpl implements OrderService {
+    private final static String USER_EXCEPTION_MESSAGE = "We don't have %s in quantity %d.\n";
     @Resource
     private PhoneDao phoneDao;
     @Resource
@@ -65,33 +67,60 @@ public class OrderServiceImpl implements OrderService {
     public void placeOrder(Order order, PersonalDataForm personalDataForm) throws OutOfStockException {
         setPersonalData(personalDataForm, order);
         List<OrderItem> orderItems = order.getOrderItems();
-        ListIterator<OrderItem> iterator = orderItems.listIterator();
-        boolean isOutOfStock = decreaseStockAndIsOutOfStock(iterator);
-        if (!order.getOrderItems().isEmpty()) {
-            orderDao.saveOrder(order);
+        validateOrderItemsQuantity(orderItems);
+        orderItems.forEach(orderItem -> phoneDao.decreaseStock(orderItem.getPhoneId(), orderItem.getQuantity()));
+        orderDao.saveOrder(order);
+    }
+
+    private void validateOrderItemsQuantity(List<OrderItem> orderItems) throws OutOfStockException {
+        ListIterator<OrderItem> orderItemListIterator = orderItems.listIterator();
+        StringBuilder userExceptionMessage = new StringBuilder();
+        List<Long> removedIds = new ArrayList<>();
+        while (orderItemListIterator.hasNext()) {
+            removeAndAppendMessageIfOutOfStockException(orderItemListIterator, userExceptionMessage, removedIds);
         }
-        if (isOutOfStock) {
-            throw new OutOfStockException();
+        if (userExceptionMessage.length() != 0) {
+            throw new OutOfStockException(userExceptionMessage.toString(), removedIds);
         }
     }
+
+    private void removeAndAppendMessageIfOutOfStockException(ListIterator<OrderItem> orderItemListIterator, StringBuilder userExceptionMessage, List<Long> removedIds) {
+        OrderItem orderItem = orderItemListIterator.next();
+        Optional<Stock> stockOptional = phoneDao.getStock(orderItem.getPhoneId());
+        if (!stockOptional.isPresent() || stockOptional.get().getStock() - orderItem.getQuantity() < 0) {
+            removedIds.add(orderItem.getPhoneId());
+            orderItemListIterator.remove();
+            userExceptionMessage.append(String.format(USER_EXCEPTION_MESSAGE, orderItem.getPhone().getModel(), orderItem.getQuantity()));
+        }
+    }
+
 
     @Override
     public Optional<Order> getOrderByUuid(String uuid) {
         return orderDao.getOrder(uuid);
     }
 
-    private boolean decreaseStockAndIsOutOfStock(ListIterator<OrderItem> iterator) {
-        boolean outOfStock = false;
-        while (iterator.hasNext()) {
-            OrderItem item = iterator.next();
-            try {
-                phoneDao.decreaseStock(item.getPhoneId(), item.getQuantity());
-            } catch (IllegalArgumentException e) {
-                iterator.remove();
-                outOfStock = true;
-            }
+    @Override
+    public List<Order> getAll() {
+        return orderDao.getAll();
+    }
+
+    @Override
+    public Optional<Order> getOrderById(Long id) {
+        return orderDao.getOrder(id);
+    }
+
+    @Override
+    public void changeOrderStatus(Long id, String newOrderStatus) {
+        OrderStatus status = OrderStatus.valueOf(newOrderStatus);
+        orderDao.changeOrderStatus(id, status);
+        if (status.equals(OrderStatus.REJECTED)) {
+            orderDao.getOrder(id).ifPresent(this::returnOrderStockToPhoneDao);
         }
-        return outOfStock;
+    }
+
+    private void returnOrderStockToPhoneDao(Order order) {
+        order.getOrderItems().forEach(orderItem -> phoneDao.increaseStock(orderItem.getPhoneId(), orderItem.getQuantity()));
     }
 
     public void setPhoneDao(PhoneDao phoneDao) {
@@ -100,5 +129,9 @@ public class OrderServiceImpl implements OrderService {
 
     public void setOrderDao(OrderDao orderDao) {
         this.orderDao = orderDao;
+    }
+
+    public void setDeliveryPrice(String deliveryPrice) {
+        this.deliveryPrice = deliveryPrice;
     }
 }

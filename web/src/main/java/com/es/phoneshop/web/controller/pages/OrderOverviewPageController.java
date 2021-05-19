@@ -17,7 +17,7 @@ import static com.es.phoneshop.web.controller.pages.ControllersConstants.ORDER_A
 @RequestMapping(value = "/orderOverview")
 public class OrderOverviewPageController {
     @Resource
-    OrderService service;
+    private OrderService service;
 
     @RequestMapping(value = "/{uuid}", method = RequestMethod.GET)
     public String showOverview(@PathVariable String uuid, Model model) {

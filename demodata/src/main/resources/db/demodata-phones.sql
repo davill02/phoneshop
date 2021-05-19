@@ -22830,3 +22830,15 @@ insert into phone2color (phoneId, colorId) values (1000, 1000),
  (8761, 1, 1),
  (8762, 2, 2),
  (8763, 3, 3);
+insert into orders(id, firstName, lastName, totalPrice, subtotal, deliveryPrice, deliveryAddress, additionalInformation,
+                   contactPhoneNo, status, uuid, date)
+values (100, 'Andrei', 'Artuhanau', 530, 498, 32, 'address', 'no', '+433882', 'NEW',
+        'ac0ed9b8-dde7-4523-b55c-70ae94175509', TO_TIMESTAMP('2015/12/31 10:13:18', 'YYYY/MM/DD HH:MI:SS')),
+       (101, 'Alex', 'Morgan', 551, 519, 32, 'address', 'no', '+4567', 'NEW', 'd9a36bba-0ab2-4338-bc23-922e6df5656a',TO_TIMESTAMP('2015/12/31 10:13:18', 'YYYY/MM/DD HH:MI:SS')),
+       (102, 'Artur', 'Zinger', 530, 498, 32, 'address', 'no', '+433882', 'NEW',
+        'c465e349-c73b-46a6-b5b8-7a07dcd49ed4',TO_TIMESTAMP('2015/12/31 10:13:18', 'YYYY/MM/DD HH:MI:SS'));
+insert into order2phone(id, orderId, phoneId, quantity)
+values (1, 100, 1003, 2),
+       (2, 101, 1003, 1),
+       (3, 101, 1006, 1),
+       (4, 102, 1003, 1);

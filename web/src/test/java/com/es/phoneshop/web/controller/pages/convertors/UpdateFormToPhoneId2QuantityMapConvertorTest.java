@@ -12,7 +12,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 public class UpdateFormToPhoneId2QuantityMapConvertorTest {
-    private UpdateFormToPhoneId2QuantityMapConvertor updateFormToPhoneId2QuantityMapConvertor = new UpdateFormToPhoneId2QuantityMapConvertor();
+    private final UpdateFormToPhoneId2QuantityMapConvertor updateFormToPhoneId2QuantityMapConvertor = new UpdateFormToPhoneId2QuantityMapConvertor();
 
     @Test(expected = IllegalArgumentException.class)
     public void shouldThrowIllegalArgumentExceptionByNotEqualSizes() {

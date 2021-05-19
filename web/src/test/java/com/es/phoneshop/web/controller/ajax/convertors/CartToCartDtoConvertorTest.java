@@ -10,18 +10,18 @@ import java.math.BigDecimal;
 import static org.junit.Assert.assertEquals;
 
 public class CartToCartDtoConvertorTest {
+    private final CartToCartDtoConvertor cartToCartDtoConvertor = new CartToCartDtoConvertor();
     @Test
     public void shouldConvertCart() {
         Cart cart = new Cart();
         cart.setQuantity(100L);
         cart.setTotalPrice(BigDecimal.TEN);
-        CartToCartDtoConvertor cartToCartDTOConvertor = new CartToCartDtoConvertor();
 
-        CartDto cartDTO = cartToCartDTOConvertor.convert(cart);
+        CartDto cartDto = cartToCartDtoConvertor.convert(cart);
 
-        assertEquals(cart.getQuantity(), cartDTO.getQuantity());
-        assertEquals(cart.getTotalPrice(), cartDTO.getTotalPrice());
-        assertEquals(cartToCartDTOConvertor.ADDED_TO_CART_MSG, cartDTO.getMessage());
-        assertEquals(AjaxMessageCode.SUCCESS.getCode(), cartDTO.getCode());
+        assertEquals(cart.getQuantity(), cartDto.getQuantity());
+        assertEquals(cart.getTotalPrice(), cartDto.getTotalPrice());
+        assertEquals(CartToCartDtoConvertor.ADDED_TO_CART_MSG, cartDto.getMessage());
+        assertEquals(AjaxMessageCode.SUCCESS.getCode(), cartDto.getCode());
     }
 }

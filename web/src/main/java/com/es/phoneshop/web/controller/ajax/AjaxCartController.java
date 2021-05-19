@@ -3,7 +3,7 @@ package com.es.phoneshop.web.controller.ajax;
 import com.es.core.cart.Cart;
 import com.es.core.cart.CartService;
 import com.es.core.cart.exception.IllegalPhoneException;
-import com.es.core.cart.exception.OutOfStockException;
+import com.es.core.cart.exception.PhoneOutOfStockException;
 import com.es.phoneshop.web.controller.ajax.entities.CartDto;
 import com.es.phoneshop.web.controller.ajax.entities.ExceptionMessageDto;
 import com.es.phoneshop.web.controller.ajax.entities.PhoneAddingForm;
@@ -64,7 +64,7 @@ public class AjaxCartController {
         return new ExceptionMessageDto(AjaxMessageCode.ERROR.getCode(), builder.toString());
     }
 
-    @ExceptionHandler({OutOfStockException.class, IllegalPhoneException.class})
+    @ExceptionHandler({PhoneOutOfStockException.class, IllegalPhoneException.class})
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
     public ExceptionMessageDto handleCartException(RuntimeException exception) {

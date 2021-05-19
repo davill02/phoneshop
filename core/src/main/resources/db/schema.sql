@@ -66,7 +66,8 @@ create table orders(
     additionalInformation VARCHAR(2000),
     contactPhoneNo VARCHAR(18),
     uuid VARCHAR(36),
-    status varchar(15) check (status in ('NEW','DELIVERED','REJECTED'))
+    status varchar(15) check (status in ('NEW','DELIVERED','REJECTED')),
+    date TIMESTAMP
 );
 
 create table order2phone(

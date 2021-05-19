@@ -56,7 +56,7 @@ public class JdbcPhoneDao implements PhoneDao {
     private static final String ILLEGAL_SEARCH_FIELD_MSG = "searchField cant be ";
     private static final char WHITESPACE = ' ';
     private static final String COUNT_IS_NULL_MSG = "Count is null";
-    private static final String COUNT_IS_MORE_THAN_STOCK_MSG = "Count is more than stock";
+    private static final String UPDATE_STOCK_WITH_ID = "UPDATE stocks SET stock = ? WHERE phoneId = ?";
 
 
     @Resource
@@ -268,21 +268,20 @@ public class JdbcPhoneDao implements PhoneDao {
     }
 
     public void decreaseStock(Long key, Long count) {
+        validateCount(count);
+        getStock(key).ifPresent(next -> jdbcTemplate.update(UPDATE_STOCK_WITH_ID, next.getStock() - count, next.getPhone().getId()));
+    }
+
+    private void validateCount(Long count) {
         if (count == null) {
             throw new IllegalArgumentException(COUNT_IS_NULL_MSG);
         }
-        Optional<Stock> stock = getStock(key);
-        stock.ifPresent(next -> {
-            validateCount(count, next);
-            jdbcTemplate.update("UPDATE stocks SET stock = ? WHERE phoneId = ?", next.getStock() - count, next.getPhone().getId());
-        });
     }
 
-    private void validateCount(Long count, Stock next) {
-        if (next.getStock() - count < 0) {
-            throw new IllegalArgumentException(COUNT_IS_MORE_THAN_STOCK_MSG);
-        }
+    public void increaseStock(Long key, Long count) {
+        decreaseStock(key, -count);
     }
+
 
     public void setJdbcTemplate(JdbcTemplate jdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;

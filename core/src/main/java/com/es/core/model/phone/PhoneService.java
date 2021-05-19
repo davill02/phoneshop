@@ -9,4 +9,6 @@ public interface PhoneService {
     Optional<Phone> get(Long key);
 
     Long countResultsFindAllOrderBy(String query);
+
+    Optional<Stock> getStock(Long id);
 }

@@ -17,4 +17,7 @@ final public class OrderDaoConstants {
     public static final String ORDER_2_PHONE_TABLE_NAME = "order2phone";
     public static final String ORDERS_TABLE_NAME = "orders";
     public static final String UUID_COLUMN = "uuid";
+    public static final String DATE = "date";
+
+    private OrderDaoConstants(){}
 }

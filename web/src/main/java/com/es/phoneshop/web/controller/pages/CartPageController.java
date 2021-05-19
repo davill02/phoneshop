@@ -25,6 +25,7 @@ import java.util.Map;
 
 import static com.es.phoneshop.web.controller.pages.ControllersConstants.BINDING_RESULT_UPDATE_FORM_ATTR;
 import static com.es.phoneshop.web.controller.pages.ControllersConstants.CART_ATTR;
+import static com.es.phoneshop.web.controller.pages.ControllersConstants.HAS_ERRORS_ATTR;
 import static com.es.phoneshop.web.controller.pages.ControllersConstants.ORDER_ACTION;
 import static com.es.phoneshop.web.controller.pages.ControllersConstants.UPDATE_FORM_ATTR;
 
@@ -47,7 +48,7 @@ public class CartPageController {
     @RequestMapping(method = RequestMethod.GET)
     public void getCart(HttpSession session, Model model) {
         ControllerUtils.createCartIfNotExist(session);
-        if (!model.containsAttribute(UPDATE_FORM_ATTR)) {
+        if (!model.containsAttribute(HAS_ERRORS_ATTR)) {
             model.addAttribute(UPDATE_FORM_ATTR, conversionService.convert(session.getAttribute(CART_ATTR), UpdateForm.class));
         }
     }
@@ -64,14 +65,20 @@ public class CartPageController {
             cartService.update(conversionService.convert(updateForm, Map.class), (Cart) session.getAttribute(CART_ATTR));
         } else {
             redirectAttributes.addFlashAttribute(BINDING_RESULT_UPDATE_FORM_ATTR, bindingResult);
+            redirectAttributes.addFlashAttribute(HAS_ERRORS_ATTR, null);
         }
-        if (isOrdered(bindingResult, action)) {
-            return "redirect:order";
-        }
-        return "redirect:cart";
+        return getRedirectingPage(bindingResult, action);
     }
 
-    private boolean isOrdered(BindingResult bindingResult, String action) {
+    private String getRedirectingPage(BindingResult bindingResult, String action) {
+        String redirectPage = "redirect:cart";
+        if (isOrder(bindingResult, action)) {
+            redirectPage = "redirect:order";
+        }
+        return redirectPage;
+    }
+
+    private boolean isOrder(BindingResult bindingResult, String action) {
         return action != null && action.equals(ORDER_ACTION) && !bindingResult.hasErrors();
     }
 }

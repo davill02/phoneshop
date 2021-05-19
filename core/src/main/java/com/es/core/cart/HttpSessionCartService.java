@@ -1,13 +1,14 @@
 package com.es.core.cart;
 
 import com.es.core.cart.exception.IllegalPhoneException;
-import com.es.core.cart.exception.OutOfStockException;
+import com.es.core.cart.exception.PhoneOutOfStockException;
 import com.es.core.model.phone.PhoneDao;
 import com.es.core.model.phone.Stock;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -15,18 +16,14 @@ import java.util.stream.Collectors;
 
 @Service
 public class HttpSessionCartService implements CartService {
-
-    private static final String QUANTITY_IS_NULL_EXCEPTION_MSG = "Quantity is null";
     private static final String CART_IS_NULL_EXCEPTION_MSG = "Cart is null";
-    private static final String QUANTITY_IS_NEGATIVE_EXCEPTION_MSG = "Quantity can't be negative";
-    public static final String LIST_CART_ITEMS_IS_NULL_MSG = ": cartItems is null";
     public static final String MAP_CAN_T_BE_NULL_MSG = "Map can't be null";
     @Resource
     private PhoneDao phoneDao;
 
     @Override
     public void addPhone(Long phoneId, Long quantity, Cart cart) {
-        checkValues(quantity, cart);
+        validateCart(cart);
         removeInvalidCartItems(cart);
         Stock stock = phoneDao.getStock(phoneId).orElseThrow(() -> new IllegalPhoneException(phoneId));
         checkStock(phoneId, quantity, cart, stock);
@@ -88,27 +85,14 @@ public class HttpSessionCartService implements CartService {
             throw new IllegalPhoneException(stock.getPhone().getModel());
         }
         CartItem cartItem = findCartItemById(cart, phoneId).orElse(new CartItem());
-        if (stock.getStock() - stock.getReserved() - quantity - cartItem.getQuantity() < 1) {
-            throw new OutOfStockException(stock.getPhone().getModel(), quantity + cartItem.getQuantity());
+        if (stock.getStock() - quantity - cartItem.getQuantity() < 0) {
+            throw new PhoneOutOfStockException(stock.getPhone().getModel(), quantity + cartItem.getQuantity());
         }
-    }
-
-    private void checkValues(Long quantity, Cart cart) {
-        if (quantity == null) {
-            throw new IllegalArgumentException(QUANTITY_IS_NULL_EXCEPTION_MSG);
-        }
-        if (quantity < 1) {
-            throw new IllegalArgumentException(QUANTITY_IS_NEGATIVE_EXCEPTION_MSG);
-        }
-        validateCart(cart);
     }
 
     private void validateCart(Cart cart) {
         if (cart == null) {
             throw new IllegalArgumentException(CART_IS_NULL_EXCEPTION_MSG);
-        }
-        if (cart.getItems() == null) {
-            throw new IllegalArgumentException(CART_IS_NULL_EXCEPTION_MSG + LIST_CART_ITEMS_IS_NULL_MSG);
         }
     }
 
@@ -133,6 +117,13 @@ public class HttpSessionCartService implements CartService {
         cart.setItems(removeCartItemByIdAhdReturnCartItems(phoneId, cart));
         cart.setQuantity(calculateQuantity(cart));
         cart.setTotalPrice(calculateTotalPrice(cart));
+    }
+
+    @Override
+    public void clear(Cart cart) {
+        validateCart(cart);
+        cart.setItems(new ArrayList<>());
+        recalculateCart(cart);
     }
 
     private List<CartItem> removeCartItemByIdAhdReturnCartItems(Long phoneId, Cart cart) {

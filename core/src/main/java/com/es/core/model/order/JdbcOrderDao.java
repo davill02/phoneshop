@@ -13,12 +13,19 @@ import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
+import java.sql.Timestamp;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
 @Component
 public class JdbcOrderDao implements OrderDao {
+    private static final String SELECT_COUNT_ORDERS_WITH_UUID = "SELECT COUNT(*) FROM orders WHERE uuid = ?";
+    private static final String SELECT_PHONE_2_ORDER_WITH_ORDER_ID = "SELECT * FROM order2phone WHERE orderId = ?";
+    private static final String SELECT_ORDERS_WITH_ID = "SELECT * FROM orders WHERE id = ?";
+    private static final String SELECT_ORDERS_WITH_UUID = "SELECT * FROM orders WHERE uuid = ?";
+    private static final String SELECT_ALL_ORDERS = "SELECT * FROM orders";
     @Resource
     private JdbcTemplate jdbcTemplate;
     @Resource
@@ -49,8 +56,7 @@ public class JdbcOrderDao implements OrderDao {
         if (uuid == null) {
             return Optional.empty();
         }
-        List<Order> orders = jdbcTemplate
-                .query("SELECT * FROM orders WHERE uuid = ?", orderRowMapper, uuid);
+        List<Order> orders = jdbcTemplate.query(SELECT_ORDERS_WITH_UUID, orderRowMapper, uuid);
         return getOrderOptional(orders);
     }
 
@@ -69,14 +75,12 @@ public class JdbcOrderDao implements OrderDao {
         if (id == null) {
             return Optional.empty();
         }
-        List<Order> orders = jdbcTemplate
-                .query("SELECT * FROM orders WHERE id = ?", orderRowMapper, id);
+        List<Order> orders = jdbcTemplate.query(SELECT_ORDERS_WITH_ID, orderRowMapper, id);
         return getOrderOptional(orders);
     }
 
     private void setOrderItemList(Order order) {
-        List<OrderItem> orderItemsList = jdbcTemplate
-                .query("SELECT * FROM order2phone WHERE orderId = ?", orderItemRowMapper, order.getId());
+        List<OrderItem> orderItemsList = jdbcTemplate.query(SELECT_PHONE_2_ORDER_WITH_ORDER_ID, orderItemRowMapper, order.getId());
         orderItemsList.forEach(orderItem -> {
             Phone phone = phoneDao.get(orderItem.getPhoneId()).orElse(null);
             orderItem.setPhone(phone);
@@ -89,17 +93,16 @@ public class JdbcOrderDao implements OrderDao {
     public void saveOrder(Order order) {
         validateOrder(order);
         setUuid(order);
+        order.setDate(new Timestamp((new Date()).getTime()));
         order.setId((Long) simpleJdbcInsertOrder.executeAndReturnKey(orderMapper.map(order)));
-        order.getOrderItems().forEach(orderItem -> {
-            validateOrderItem(orderItem);
-            orderItem.setId((Long) simpleJdbcInsertOrder2Phone.executeAndReturnKey(orderItemMapper.map(orderItem)));
-        });
+        order.getOrderItems()
+                .forEach(orderItem -> orderItem.setId((Long) simpleJdbcInsertOrder2Phone.executeAndReturnKey(orderItemMapper.map(orderItem))));
     }
 
     private void setUuid(Order order) {
         while (true) {
             String uuid = UUID.randomUUID().toString();
-            Long count = jdbcTemplate.queryForObject("SELECT COUNT(*) FROM orders WHERE uuid = ?", Long.class, uuid);
+            Long count = jdbcTemplate.queryForObject(SELECT_COUNT_ORDERS_WITH_UUID, Long.class, uuid);
             if (count.equals(0L)) {
                 order.setUuid(uuid);
                 break;
@@ -107,22 +110,22 @@ public class JdbcOrderDao implements OrderDao {
         }
     }
 
-    private void validateOrderItem(OrderItem orderItem) {
-        if (orderItem.getPhoneId() == null) {
-            throw new IllegalArgumentException("PhoneId is null");
-        }
-    }
-
     private void validateOrder(Order order) {
         if (order == null) {
             throw new IllegalArgumentException("Order is null");
         }
-        if (order.getStatus() == null) {
-            throw new IllegalArgumentException("Order status is null");
-        }
-        if (order.getOrderItems() == null) {
-            throw new IllegalArgumentException("Order items are null");
-        }
+    }
+
+    @Override
+    public List<Order> getAll() {
+        List<Order> orders = jdbcTemplate.query(SELECT_ALL_ORDERS, orderRowMapper);
+        orders.forEach(this::setOrderItemList);
+        return orders;
+    }
+
+    @Override
+    public void changeOrderStatus(Long id, OrderStatus newStatus) {
+        jdbcTemplate.update("UPDATE orders SET status = ? where id = ?", newStatus.toString(), id);
     }
 
     public void setJdbcTemplate(JdbcTemplate jdbcTemplate) {

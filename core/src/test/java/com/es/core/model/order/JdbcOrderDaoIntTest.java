@@ -5,9 +5,11 @@ import org.junit.runner.RunWith;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.jdbc.JdbcTestUtils;
 
 import javax.annotation.Resource;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 import static org.junit.Assert.assertEquals;
@@ -28,9 +30,9 @@ public class JdbcOrderDaoIntTest {
     private static final String LASTNAME = "Artuhanau";
     private static final int TWO_ITEMS = 2;
     @Resource
-    OrderDao orderDao;
+    private OrderDao orderDao;
     @Resource
-    JdbcTemplate jdbcTemplate;
+    private JdbcTemplate jdbcTemplate;
 
     @Test
     public void shouldGetOrder() {
@@ -43,7 +45,7 @@ public class JdbcOrderDaoIntTest {
     }
 
     @Test
-    public void shouldGetOrderByUuid(){
+    public void shouldGetOrderByUuid() {
         Optional<Order> order = orderDao.getOrder("ac0ed9b8-dde7-4523-b55c-70ae94175509");
 
         assertTrue(order.isPresent());
@@ -82,32 +84,13 @@ public class JdbcOrderDaoIntTest {
     public void shouldThrowIllegalArgumentExceptionByOrderNull() {
         orderDao.saveOrder(null);
     }
+    @Test
+    public void shouldReturnEmptyOptionalWithNullUuid(){
+        Optional<Order> order = orderDao.getOrder((String) null);
 
-    @Test(expected = IllegalArgumentException.class)
-    public void shouldThrowIllegalArgumentExceptionByOrderItemsNull() {
-        Order order = new Order();
-        order.setStatus(OrderStatus.NEW);
-
-        orderDao.saveOrder(order);
+        assertFalse(order.isPresent());
     }
 
-    @Test(expected = IllegalArgumentException.class)
-    public void shouldThrowIllegalArgumentExceptionByStatusNull() {
-        Order order = new Order();
-        order.setOrderItems(new ArrayList<>());
-
-        orderDao.saveOrder(order);
-    }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void shouldThrowIllegalArgumentExceptionByOrderItemPhoneIdNull() {
-        Order order = new Order();
-        order.setOrderItems(new ArrayList<>());
-        order.setStatus(OrderStatus.NEW);
-        order.getOrderItems().add(new OrderItem());
-
-        orderDao.saveOrder(order);
-    }
 
     @Test
     public void shouldSaveOrder() {
@@ -127,5 +110,24 @@ public class JdbcOrderDaoIntTest {
         assertEquals((Long) ONE, result);
         assertNotNull(order.getUuid());
         assertNotNull(order.getId());
+        assertNotNull(order.getDate());
+        JdbcTestUtils.deleteFromTableWhere(jdbcTemplate, "orders", "id = ?", order.getId());
+        JdbcTestUtils.deleteFromTableWhere(jdbcTemplate, "order2phone", "orderId = ?", order.getId());
+    }
+
+    @Test
+    public void shouldGetAllOrders() {
+        List<Order> orders = orderDao.getAll();
+
+        assertEquals(3, orders.size());
+        orders.forEach(order -> assertNotNull(order.getOrderItems()));
+    }
+
+    @Test
+    public void shouldChangeOrderStatus() {
+        orderDao.changeOrderStatus(EXIST_ORDER_ID, OrderStatus.DELIVERED);
+
+        String newStatus = jdbcTemplate.queryForObject("SELECT status FROM orders WHERE id = ?", String.class, EXIST_ORDER_ID);
+        assertEquals(OrderStatus.DELIVERED.toString(), newStatus);
     }
 }

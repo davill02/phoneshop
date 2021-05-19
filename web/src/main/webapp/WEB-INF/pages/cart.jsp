@@ -42,79 +42,88 @@
         </li>
     </ul>
 </nav>
-
-<div class="container mt-5">
-    <form:form id="putForm" method="put" commandName="updateForm">
-        <table class="table table-bordered border-primary align-middle caption-top">
-            <thead>
-            <tr>
-                <td>Image</td>
-                <td>Brand
-                </td>
-                <td>Model
-                </td>
-                <td>Colors</td>
-                <td>Display size
-                </td>
-                <td>Price
-                </td>
-                <td>
-                    Quantity
-                </td>
-                <td>
-                    Add to
-                </td>
-            </tr>
-            </thead>
-
-            <c:forEach var="cartItem" items="${cart.items}" varStatus="counter">
+<c:if test="${cart.items.size() == 0}">
+    <div class="container mt-5">
+        <div class="row">
+            <p class="">Cart is empty. <a class="btn btn-primary" href="${pageContext.servletContext.contextPath}">Continue
+                shopping</a></p>
+        </div>
+    </div>
+</c:if>
+<c:if test="${cart.items.size()>0}">
+    <div class="container mt-5">
+        <form:form id="putForm" method="put" commandName="updateForm">
+            <table class="table table-bordered border-primary align-middle caption-top">
+                <thead>
                 <tr>
-                    <td>
-                        <img height="150px" width="150px" class="img-thumbnail"
-                             src="https://raw.githubusercontent.com/andrewosipenko/phoneshop-ext-images/master/${cartItem.phone.imageUrl}"
-                             alt="Picture">
+                    <td>Image</td>
+                    <td>Brand
                     </td>
-                    <td>${cartItem.phone.brand}</td>
-                    <td>
-                        <a href="${pageContext.servletContext.contextPath}/productDetails/${cartItem.phone.id}">${cartItem.phone.model}</a>
+                    <td>Model
                     </td>
-                    <td><c:forEach var="color" items="${cartItem.phone.colors}">
-                        ${color.code}
-                    </c:forEach></td>
-                    <td>${cartItem.phone.displaySizeInches}"</td>
-                    <td>$ ${cartItem.phone.price}</td>
-                    <td id="${cartItem.phone.id}"><label for="${cartItem.phone.id}"></label>
-                        <input type="hidden" name="phoneId" value="${cartItem.phone.id}">
-                        <form:input path="quantity[${counter.count -1}]" name="quantity"
-                                    class="form-control"
-                                    id="${cartItem.phone.id}" type="text"/>
-                        <p class="text-danger"><form:errors path="phoneId[${counter.count - 1}]"/></p>
-                        <p class="text-danger"><form:errors path="quantity[${counter.count - 1}]"/></p>
+                    <td>Colors</td>
+                    <td>Display size
+                    </td>
+                    <td>Price
                     </td>
                     <td>
-                        <form:form form:id="deleteForm" method="delete">
-                            <button id="deleteForm" class="btn btn-outline-danger" type="submit" name="id"
-                                    value="${cartItem.phone.id}">Remove
-                            </button>
-                        </form:form>
+                        Quantity
+                    </td>
+                    <td>
+                        Add to
                     </td>
                 </tr>
-            </c:forEach>
+                </thead>
 
-        </table>
-    </form:form>
-    <div class="row">
-        <div class="col-4">
-            <a class="btn btn-primary" href="${pageContext.servletContext.contextPath}/productList">Back to product
-                list</a>
-        </div>
-        <div class="col-6"></div>
-        <div class="col-1">
-            <button class="btn btn-info" type="submit" name="action" value="update" id="putForm">Update</button>
-        </div>
-        <div class="col-1">
-            <button class="btn btn-success" type="submit" name="action" value="order" id="putForm">Order</button>
-        </div>
+                <c:forEach var="cartItem" items="${cart.items}" varStatus="counter">
+                    <tr>
+                        <td>
+                            <img height="150px" width="150px" class="img-thumbnail"
+                                 src="https://raw.githubusercontent.com/andrewosipenko/phoneshop-ext-images/master/${cartItem.phone.imageUrl}"
+                                 alt="Picture">
+                        </td>
+                        <td>${cartItem.phone.brand}</td>
+                        <td>
+                            <a href="${pageContext.servletContext.contextPath}/productDetails/${cartItem.phone.id}">${cartItem.phone.model}</a>
+                        </td>
+                        <td><c:forEach var="color" items="${cartItem.phone.colors}">
+                            ${color.code}
+                        </c:forEach></td>
+                        <td>${cartItem.phone.displaySizeInches}"</td>
+                        <td>$ ${cartItem.phone.price}</td>
+                        <td id="${cartItem.phone.id}"><label for="${cartItem.phone.id}"></label>
+                            <input type="hidden" name="phoneId" value="${cartItem.phone.id}">
+                            <form:input path="quantity[${counter.count -1}]" name="quantity"
+                                        class="form-control"
+                                        id="${cartItem.phone.id}" type="text"/>
+                            <p class="text-danger"><form:errors path="phoneId[${counter.count - 1}]"/></p>
+                            <p class="text-danger"><form:errors path="quantity[${counter.count - 1}]"/></p>
+                        </td>
+                        <td>
+                            <form:form form:id="deleteForm" method="delete">
+                                <button id="deleteForm" class="btn btn-outline-danger" type="submit" name="id"
+                                        value="${cartItem.phone.id}">Remove
+                                </button>
+                            </form:form>
+                        </td>
+                    </tr>
+                </c:forEach>
 
+            </table>
+        </form:form>
+        <div class="row">
+            <div class="col-4">
+                <a class="btn btn-primary" href="${pageContext.servletContext.contextPath}/productList">Back to product
+                    list</a>
+            </div>
+            <div class="col-6"></div>
+            <div class="col-1">
+                <button class="btn btn-info" type="submit" name="action" value="update" id="putForm">Update</button>
+            </div>
+            <div class="col-1">
+                <button class="btn btn-success" type="submit" name="action" value="order" id="putForm">Order</button>
+            </div>
+
+        </div>
     </div>
-</div>
+</c:if>
