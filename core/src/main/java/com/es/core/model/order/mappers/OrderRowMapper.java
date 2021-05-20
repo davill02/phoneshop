@@ -13,8 +13,6 @@ import static com.es.core.model.order.OrderDaoConstants.ID_COLUMN;
 import static com.es.core.model.order.OrderDaoConstants.TOTAL_PRICE_COLUMN;
 
 public class OrderRowMapper implements RowMapper<Order> {
-
-
     @Override
     public Order mapRow(ResultSet rs, int rowNum) throws SQLException {
         Order order = new Order();
@@ -29,6 +27,7 @@ public class OrderRowMapper implements RowMapper<Order> {
         order.setTotalPrice(rs.getBigDecimal(TOTAL_PRICE_COLUMN));
         order.setSubtotal(rs.getBigDecimal(OrderDaoConstants.SUBTOTAL_COLUMN));
         order.setStatus(OrderStatus.valueOf(rs.getString(OrderDaoConstants.STATUS_COLUMN)));
+        order.setDate(rs.getTimestamp(OrderDaoConstants.DATE));
         return order;
     }
 }

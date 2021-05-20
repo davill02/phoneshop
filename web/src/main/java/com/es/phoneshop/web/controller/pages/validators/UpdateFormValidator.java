@@ -1,6 +1,6 @@
 package com.es.phoneshop.web.controller.pages.validators;
 
-import com.es.core.model.phone.PhoneDao;
+import com.es.core.model.phone.PhoneService;
 import com.es.core.model.phone.Stock;
 import com.es.phoneshop.web.controller.pages.entites.UpdateForm;
 import org.springframework.stereotype.Component;
@@ -20,7 +20,7 @@ public class UpdateFormValidator implements Validator {
     private static final String PHONE_ID_NOT_STOCK_ERR_CODE = "phoneId.not.stock";
     private static final String PHONE_ID_NOT_HAVE_ALL_ERR_CODE = "phoneId.not.have.all";
     @Resource
-    private PhoneDao phoneDao;
+    private PhoneService phoneService;
 
     @Override
     public boolean supports(Class<?> clazz) {
@@ -63,9 +63,9 @@ public class UpdateFormValidator implements Validator {
     }
 
     private void checkStock(Errors errors, List<Long> ids, int i, Long quantity) {
-        Optional<Stock> stock = phoneDao.getStock(ids.get(i));
+        Optional<Stock> stock = phoneService.getStock(ids.get(i));
         if (stock.isPresent()) {
-            if (stock.get().getStock() - quantity - stock.get().getReserved() < 0) {
+            if (stock.get().getStock() - quantity < 0) {
                 errors.rejectValue(String.format(PHONE_ID_PATH, i), PHONE_ID_NOT_HAVE_ALL_ERR_CODE, "We don't have this count phones");
             }
         } else {

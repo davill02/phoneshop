@@ -9,7 +9,7 @@ import java.util.Optional;
 @Service
 public class PhoneServiceImpl implements PhoneService {
     @Resource
-    PhoneDao phoneDao;
+    private PhoneDao phoneDao;
 
     @Override
     public List<Phone> findAllOrderBy(int offset, int limit, String order, String searchField, String searchRequest) {
@@ -24,5 +24,10 @@ public class PhoneServiceImpl implements PhoneService {
     @Override
     public Long countResultsFindAllOrderBy(String query) {
         return phoneDao.countResultsFindAllOrderBy(query);
+    }
+
+    @Override
+    public Optional<Stock> getStock(Long id) {
+        return phoneDao.getStock(id);
     }
 }

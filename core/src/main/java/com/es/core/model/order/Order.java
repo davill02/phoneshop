@@ -1,6 +1,8 @@
 package com.es.core.model.order;
 
 import java.math.BigDecimal;
+import java.sql.Timestamp;
+import java.util.ArrayList;
 import java.util.List;
 
 public class Order {
@@ -23,6 +25,13 @@ public class Order {
     private String additionalInformation;
     private String uuid;
     private OrderStatus status;
+    private Timestamp date;
+
+    public Order() {
+        orderItems = new ArrayList<>();
+        status = OrderStatus.NEW;
+    }
+
 
     public String getUuid() {
         return uuid;
@@ -39,6 +48,14 @@ public class Order {
 
     public void setAdditionalInformation(String additionalInformation) {
         this.additionalInformation = additionalInformation;
+    }
+
+    public Timestamp getDate() {
+        return date;
+    }
+
+    public void setDate(Timestamp date) {
+        this.date = date;
     }
 
     public Long getId() {

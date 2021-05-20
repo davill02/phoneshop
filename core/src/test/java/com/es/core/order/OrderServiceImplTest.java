@@ -8,16 +8,18 @@ import com.es.core.model.order.OrderItem;
 import com.es.core.model.order.OrderStatus;
 import com.es.core.model.phone.Phone;
 import com.es.core.model.phone.PhoneDao;
+import com.es.core.model.phone.Stock;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.TestPropertySource;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.runners.MockitoJUnitRunner;
 
-import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import static org.junit.Assert.assertEquals;
@@ -25,21 +27,26 @@ import static org.junit.Assert.assertNotNull;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
-@RunWith(SpringRunner.class)
-@TestPropertySource("/application.properties")
-@ContextConfiguration("/test-order-service.xml")
+@RunWith(MockitoJUnitRunner.class)
 public class OrderServiceImplTest {
     private static final long QUANTITY = 10L;
-    @Resource
-    private OrderService orderService;
-    @Resource
+    private static final long ID = 12L;
+    @InjectMocks
+    private final OrderService orderService = new OrderServiceImpl();
+    @Mock
     private PhoneDao phoneDao;
-    @Resource
+    @Mock
     private OrderDao orderDao;
+
+    @Before
+    public void setup() {
+        ((OrderServiceImpl) orderService).setDeliveryPrice("10.0");
+    }
 
     @Test
     public void shouldCreateOrder() {
@@ -66,12 +73,20 @@ public class OrderServiceImplTest {
     @Test
     public void shouldPlaceOrder() throws OutOfStockException {
         Order order = getOrderWith3items();
+        when(phoneDao.getStock(any())).thenReturn(createStock());
 
         orderService.placeOrder(order, new PersonalDataForm());
 
         verify(phoneDao, times(3)).decreaseStock(any(), any());
         verify(orderDao).saveOrder(any(Order.class));
     }
+
+    private Optional<Stock> createStock() {
+        Stock stock = new Stock();
+        stock.setStock((int) QUANTITY);
+        return Optional.of(stock);
+    }
+
 
     @Test
     public void shouldGetOrderByUuid() {
@@ -83,7 +98,9 @@ public class OrderServiceImplTest {
     @Test(expected = OutOfStockException.class)
     public void shouldThrowOutOfStockException() throws OutOfStockException {
         Order order = getOrderWith3items();
-        doThrow(IllegalArgumentException.class).when(phoneDao).decreaseStock(any(), eq(QUANTITY));
+        when(phoneDao.getStock(any())).thenReturn(createStock());
+        order.getOrderItems().get(0).setQuantity(QUANTITY * 2);
+
         try {
             orderService.placeOrder(order, new PersonalDataForm());
         } finally {
@@ -99,11 +116,29 @@ public class OrderServiceImplTest {
         order.setSubtotal(BigDecimal.TEN);
         List<OrderItem> orderItems = new ArrayList<>();
         for (int i = 0; i < 3; i++) {
-            orderItems.add(new OrderItem());
+            OrderItem orderItem = new OrderItem();
+            orderItem.setPhone(new Phone());
+            orderItem.setQuantity(QUANTITY);
+            orderItems.add(orderItem);
         }
-        orderItems.get(1).setQuantity(QUANTITY);
         order.setOrderItems(orderItems);
         return order;
     }
+    @Test
+    public void shouldChangeStatusToDelivered(){
+        orderService.changeOrderStatus(ID,OrderStatus.DELIVERED.toString());
 
+        verify(orderDao).changeOrderStatus(eq(ID), eq(OrderStatus.DELIVERED));
+        verify(phoneDao,never()).increaseStock(any(),any());
+    }
+    @Test
+    public void shouldChangeStatusToRejected(){
+        when(orderDao.getOrder(eq(ID))).thenReturn(Optional.of(getOrderWith3items()));
+
+        orderService.changeOrderStatus(ID,OrderStatus.REJECTED.toString());
+
+        verify(orderDao).changeOrderStatus(eq(ID), eq(OrderStatus.REJECTED));
+        verify(orderDao).getOrder(eq(ID));
+        verify(phoneDao,times(3)).increaseStock(any(),any());
+    }
 }

@@ -21,6 +21,7 @@ public class OrderMapper implements Mapper<Order> {
         propName2Value.put(OrderDaoConstants.STATUS_COLUMN, order.getStatus().name());
         propName2Value.put(OrderDaoConstants.CONTACT_PHONE_NO_COLUMN, order.getContactPhoneNo());
         propName2Value.put(OrderDaoConstants.UUID_COLUMN, order.getUuid());
+        propName2Value.put(OrderDaoConstants.DATE,order.getDate());
         return propName2Value;
     }
 }

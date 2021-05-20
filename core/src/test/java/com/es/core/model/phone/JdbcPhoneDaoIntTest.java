@@ -297,6 +297,7 @@ public class JdbcPhoneDaoIntTest {
         assertEquals(realCount, result);
     }
 
+
     @Test
     public void shouldGetStockNonExistPhone() {
         Optional<Stock> stock = phoneDao.getStock(null);
@@ -323,11 +324,6 @@ public class JdbcPhoneDaoIntTest {
         assertNotNull(stock.get().getPhone().getModel());
     }
 
-    @Test(expected = IllegalArgumentException.class)
-    public void shouldDecreaseStockAndThrowIllegalArgumentException() {
-        phoneDao.decreaseStock(PHONE_WITH_19_STOCK, 20L);
-    }
-
     @Test
     public void shouldDecreaseAllStock() {
         phoneDao.decreaseStock(PHONE_WITH_19_STOCK, 19L);
@@ -338,6 +334,10 @@ public class JdbcPhoneDaoIntTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void shouldDecreaseStockAndThrowIllegalArgumentExceptionByNull() {
+        phoneDao.decreaseStock(PHONE_WITH_19_STOCK, null);
+    }
+    @Test(expected = IllegalArgumentException.class)
+    public void shouldIncreaseStockAndThrowIllegalArgumentExceptionByNull() {
         phoneDao.decreaseStock(PHONE_WITH_19_STOCK, null);
     }
 }

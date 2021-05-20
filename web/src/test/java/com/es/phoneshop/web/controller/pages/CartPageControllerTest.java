@@ -31,12 +31,12 @@ import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppC
 @WebAppConfiguration
 @ContextConfiguration("/cart-test.xml")
 public class CartPageControllerTest {
-    public static final long ANY_LONG = 12L;
-    public static final String URL_CART = "/cart";
+    private static final long ANY_LONG = 12L;
+    private static final String URL_CART = "/cart";
     @Resource
-    CartService mockCartService;
+    private CartService mockCartService;
     @Resource
-    UpdateFormValidator validator;
+    private UpdateFormValidator validator;
     @Resource
     private WebApplicationContext webApplicationContext;
 

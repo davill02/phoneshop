@@ -17,4 +17,6 @@ public interface PhoneDao {
     Optional<Stock> getStock(Long key);
 
     void decreaseStock(Long key, Long count);
+
+    void increaseStock(Long key, Long count);
 }

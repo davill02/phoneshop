@@ -14,6 +14,9 @@
     <bean id="orderService" class="org.mockito.Mockito" factory-method="mock">
         <constructor-arg value="com.es.core.order.OrderService"/>
     </bean>
+    <bean id="cartService" class="org.mockito.Mockito" factory-method="mock">
+        <constructor-arg value="com.es.core.cart.CartService"/>
+    </bean>
     <bean class="org.springframework.web.servlet.view.InternalResourceViewResolver">
         <property name="prefix" value="/WEB-INF/pages/"/>
         <property name="suffix" value=".jsp"/>

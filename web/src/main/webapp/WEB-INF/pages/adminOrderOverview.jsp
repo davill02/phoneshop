@@ -2,7 +2,6 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="tags" tagdir="/WEB-INF/tags" %>
 <%@ taglib prefix="form" uri="http://www.springframework.org/tags/form" %>
-<jsp:useBean id="cart" type="com.es.core.cart.Cart" scope="session"/>
 <head>
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta3/dist/css/bootstrap.min.css" rel="stylesheet"
@@ -26,16 +25,6 @@
         </svg>
         Phonify
     </a>
-    <ul class="navbar-nav me-auto">
-        <li class="nav-item">
-            <div class="btn-group" role="group">
-                <a href="${pageContext.servletContext.contextPath}/cart" class="btn btn-primary">Cart</a>
-                <button id="quantity" type="button" class="btn btn-primary" disabled>
-                    Quantity: ${cart.quantity} </button>
-                <button id="price" type="button" class="btn btn-primary" disabled>Price: ${cart.totalPrice} $</button>
-            </div>
-        </li>
-    </ul>
     <ul class="navbar-nav">
         <li class="nav-item">
             <a href="#" class="nav-link me-4">Login</a>
@@ -44,6 +33,11 @@
 </nav>
 
 <div class="container mt-5">
+    <div class="row">
+        <div class="col-3"><p class="text-left fs-4">Order number: ${order.id}</div>
+        <div class="col-6"></div>
+        <div class="col-3 text-right"><p class="fs-3">Order status:<strong>${order.status}</strong></p></div>
+    </div>
     <div class="row">
         <table class="table table-bordered border-primary align-middle caption-top">
             <thead>
@@ -123,6 +117,18 @@
                     <td>${order.additionalInformation}</td>
                 </tr>
             </table>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-3"><a href="${pageContext.servletContext.contextPath}/admin/orders/" class="btn btn-primary">Back
+            to main page</a></div>
+        <div class="col-9">
+            <c:if test="${order.status.toString() == 'NEW'}">
+                <form method="post">
+                    <input type="submit" name="orderStatus" value="REJECTED">
+                    <input type="submit" name="orderStatus" value="DELIVERED">
+                </form>
+            </c:if>
         </div>
     </div>
 </div>

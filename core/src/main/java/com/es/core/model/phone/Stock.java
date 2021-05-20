@@ -8,6 +8,12 @@ public class Stock {
     public Stock() {
     }
 
+    public Stock(Phone phone, Integer stock, Integer reserved) {
+        this.phone = phone;
+        this.stock = stock;
+        this.reserved = reserved;
+    }
+
     public Phone getPhone() {
         return phone;
     }
