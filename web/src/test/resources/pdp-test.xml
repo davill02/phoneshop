@@ -7,11 +7,12 @@
         http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd
 ">
     <context:component-scan use-default-filters="false" base-package="com.es.phoneshop.web.controller.pages">
-        <context:include-filter type="assignable" expression="com.es.phoneshop.web.controller.pages.ProductDetailsPageController"/>
+        <context:include-filter type="assignable"
+                                expression="com.es.phoneshop.web.controller.pages.ProductDetailsPageController"/>
     </context:component-scan>
     <mvc:annotation-driven/>
-    <bean id="phoneDao" class="org.mockito.Mockito" factory-method="mock">
-        <constructor-arg value="com.es.core.model.phone.PhoneDao"/>
+    <bean id="phoneService" class="org.mockito.Mockito" factory-method="mock">
+        <constructor-arg value="com.es.core.model.phone.PhoneService"/>
     </bean>
 
 </beans>

@@ -53,6 +53,7 @@ public class JdbcPhoneDaoIntTest {
     private static final String COUNT_PHONES_WITH_101_AND_NOT_ZERO_STOCK = "SELECT COUNT(*) FROM PHONES JOIN STOCKS S on PHONES.ID = S.PHONEID WHERE model like '%101%' AND STOCK > 0";
     private static final Integer STOCK = 20;
     private static final String TABLE_NAME_STOCKS = "stocks";
+    private static final long PHONE_WITH_19_STOCK = 1009L;
 
     @Resource
     private JdbcPhoneDao phoneDao;
@@ -64,6 +65,7 @@ public class JdbcPhoneDaoIntTest {
         JdbcTestUtils.deleteFromTableWhere(jdbcTemplate, TABLE_NAME_PHONES, "model = ? and brand = ?",
                 MODEL_GALAXY_2020, BRAND_SAMSUNG);
         JdbcTestUtils.deleteFromTableWhere(jdbcTemplate, TABLE_NAME_STOCKS, "phoneId = ?", FIRST_PHONE_ID);
+        jdbcTemplate.update("UPDATE STOCKS SET STOCK = 19 WHERE PHONEID = ?", PHONE_WITH_19_STOCK);
     }
 
     @Test
@@ -78,6 +80,13 @@ public class JdbcPhoneDaoIntTest {
         Optional<Phone> phone = phoneDao.get(FIRST_PHONE_ID);
 
         assertTrue(phone.isPresent());
+    }
+
+    @Test
+    public void shouldGetNonExistPhone() {
+        Optional<Phone> phone = phoneDao.get(12123L);
+
+        assertFalse(phone.isPresent());
     }
 
     @Test
@@ -312,5 +321,23 @@ public class JdbcPhoneDaoIntTest {
         assertEquals(STOCK, stock.get().getStock());
         assertNotNull(stock.get().getPhone());
         assertNotNull(stock.get().getPhone().getModel());
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void shouldDecreaseStockAndThrowIllegalArgumentException() {
+        phoneDao.decreaseStock(PHONE_WITH_19_STOCK, 20L);
+    }
+
+    @Test
+    public void shouldDecreaseAllStock() {
+        phoneDao.decreaseStock(PHONE_WITH_19_STOCK, 19L);
+        Long result = jdbcTemplate.queryForObject("SELECT stock FROM stocks WHERE phoneId =?", Long.class, PHONE_WITH_19_STOCK);
+
+        assertEquals((Long) 0L, result);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void shouldDecreaseStockAndThrowIllegalArgumentExceptionByNull() {
+        phoneDao.decreaseStock(PHONE_WITH_19_STOCK, null);
     }
 }

@@ -14,7 +14,7 @@ public class PhoneMapper {
     private static final String ILLEGAL_ARGUMENT_MSG = "Phone cant be null";
     private final Map<String, PropertyDescriptor> mappedFields = new HashMap<>();
 
-    private List<String> forbidProperties;
+    private final List<String> forbidProperties;
 
     public PhoneMapper() {
         this.forbidProperties = new ArrayList<>();

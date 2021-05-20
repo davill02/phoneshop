@@ -11,15 +11,15 @@ import java.util.stream.Stream;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
-public class UpdateFormToMapConvertorTest {
-    private UpdateFormToMapConvertor updateFormToMapConvertor = new UpdateFormToMapConvertor();
+public class UpdateFormToPhoneId2QuantityMapConvertorTest {
+    private UpdateFormToPhoneId2QuantityMapConvertor updateFormToPhoneId2QuantityMapConvertor = new UpdateFormToPhoneId2QuantityMapConvertor();
 
     @Test(expected = IllegalArgumentException.class)
     public void shouldThrowIllegalArgumentExceptionByNotEqualSizes() {
         UpdateForm updateForm = getUpdateForm(Stream.of(12L, 23L, 45L, 323L).collect(Collectors.toList()),
                 Stream.of("1231", "424", "123").collect(Collectors.toList()));
 
-        updateFormToMapConvertor.convert(updateForm);
+        updateFormToPhoneId2QuantityMapConvertor.convert(updateForm);
     }
 
     @Test(expected = IllegalArgumentException.class)
@@ -27,7 +27,7 @@ public class UpdateFormToMapConvertorTest {
         UpdateForm updateForm = getUpdateForm(Stream.of(12L, 23L, 45L, 323L).collect(Collectors.toList()),
                 Stream.of("1231", "424", "123", "asfgds").collect(Collectors.toList()));
 
-        updateFormToMapConvertor.convert(updateForm);
+        updateFormToPhoneId2QuantityMapConvertor.convert(updateForm);
     }
 
     @Test
@@ -35,7 +35,7 @@ public class UpdateFormToMapConvertorTest {
         UpdateForm updateForm = getUpdateForm(Stream.of(12L, 23L, 45L, 323L).collect(Collectors.toList()),
                 Stream.of("1231", "424", "123", "23").collect(Collectors.toList()));
 
-        Map<Long, Long> map = updateFormToMapConvertor.convert(updateForm);
+        Map<Long, Long> map = updateFormToPhoneId2QuantityMapConvertor.convert(updateForm);
 
         assertTrue(map.containsKey(12L));
         assertTrue(map.containsKey(23L));

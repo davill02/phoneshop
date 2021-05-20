@@ -15,4 +15,6 @@ public interface PhoneDao {
     Long countResultsFindAllOrderBy(String searchRequest);
 
     Optional<Stock> getStock(Long key);
+
+    void decreaseStock(Long key, Long count);
 }

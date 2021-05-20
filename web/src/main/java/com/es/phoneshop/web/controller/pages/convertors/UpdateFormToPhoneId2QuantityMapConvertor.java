@@ -7,7 +7,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class UpdateFormToMapConvertor implements Converter<UpdateForm, Map<Long, Long>> {
+public class UpdateFormToPhoneId2QuantityMapConvertor implements Converter<UpdateForm, Map<Long, Long>> {
 
     public static final String IDS_AND_QUANTITY_SIZES_MUST_BE_EQUAL_MSG = "Ids and quantity sizes must be equal";
     public static final String QUANTITY_CAN_T_BE_STRING_MSG = "Quantity can't be String";

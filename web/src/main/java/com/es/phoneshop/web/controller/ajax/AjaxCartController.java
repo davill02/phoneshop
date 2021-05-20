@@ -23,6 +23,7 @@ import javax.annotation.Resource;
 import javax.servlet.http.HttpSession;
 import javax.validation.Valid;
 
+import static com.es.phoneshop.web.controller.ControllerUtils.createCartIfNotExist;
 import static com.es.phoneshop.web.controller.pages.ControllersConstants.CART_ATTR;
 
 @Controller
@@ -41,7 +42,7 @@ public class AjaxCartController {
     }
 
     @RequestMapping(method = RequestMethod.POST)
-    @ResponseStatus(HttpStatus.OK)
+    @ResponseStatus(HttpStatus.CREATED)
     @ResponseBody
     public CartDto addPhone(@Valid PhoneAddingForm phoneAddingForm, HttpSession session) {
         createCartIfNotExist(session);
@@ -50,11 +51,6 @@ public class AjaxCartController {
         return conversionService.convert(currentCart, CartDto.class);
     }
 
-    private void createCartIfNotExist(HttpSession session) {
-        if (session.getAttribute(CART_ATTR) == null) {
-            session.setAttribute(CART_ATTR, new Cart());
-        }
-    }
 
     @Order(Ordered.HIGHEST_PRECEDENCE)
     @ExceptionHandler({BindException.class})
@@ -65,14 +61,14 @@ public class AjaxCartController {
         if (exception.getBindingResult() != null) {
             exception.getAllErrors().forEach(ex -> builder.append(ex.getDefaultMessage()).append("\n"));
         }
-        return new ExceptionMessageDto(AjaxMessageCode.ERROR.code, builder.toString());
+        return new ExceptionMessageDto(AjaxMessageCode.ERROR.getCode(), builder.toString());
     }
 
     @ExceptionHandler({OutOfStockException.class, IllegalPhoneException.class})
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
     public ExceptionMessageDto handleCartException(RuntimeException exception) {
-        return new ExceptionMessageDto(AjaxMessageCode.ERROR.code, exception.getMessage());
+        return new ExceptionMessageDto(AjaxMessageCode.ERROR.getCode(), exception.getMessage());
     }
 
 }

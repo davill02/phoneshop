@@ -12,7 +12,10 @@ import org.springframework.test.context.junit4.SpringRunner;
 import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 import static org.junit.Assert.assertEquals;
 
@@ -29,6 +32,7 @@ public class HttpSessionCartServiceTest {
     private static final long QUANTITY = 10L;
     private static final long NEGATIVE_QUANTITY = -1L;
     private static final long ONE_ITEM = 1L;
+    public static final long EXPECTED_QUANTITY = 20L;
     @Resource
     private CartService cartService;
     @Resource
@@ -132,6 +136,53 @@ public class HttpSessionCartServiceTest {
         assertEquals(BigDecimal.TEN, cart.getTotalPrice());
         assertEquals((Long) ONE_ITEM, cart.getQuantity());
         assertEquals(1, cart.getItems().size());
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void shouldUpdateAndThrowIllegalArgumentExceptionByNull() {
+        cartService.update(null, new Cart());
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void shouldUpdateAndThrowIllegalArgumentExceptionByNullCart() {
+        cartService.update(new HashMap<>(), null);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void shouldUpdateAndThrowIllegalArgumentExceptionByNullItems() {
+        Cart cart = new Cart();
+        cart.setItems(null);
+        cartService.update(new HashMap<>(), cart);
+    }
+
+    @Test
+    public void shouldUpdateCart(){
+        Map<Long,Long> map = new HashMap<>();
+        map.put(1003L, EXPECTED_QUANTITY);
+        map.put(1006L, EXPECTED_QUANTITY);
+        Cart cart = getLegalCart();
+
+        cartService.update(map,cart);
+        Long result1003L = cart.getItems().get(0).getQuantity();
+        Long result1006L = cart.getItems().get(1).getQuantity();
+
+        assertEquals((Long) EXPECTED_QUANTITY,result1003L);
+        assertEquals((Long) EXPECTED_QUANTITY,result1006L);
+    }
+
+    private Cart getLegalCart(){
+        Cart cart = new Cart();
+        addPhone(cart, 1003L);
+        addPhone(cart,1006L);
+        return cart;
+    }
+
+    private void addPhone(Cart cart, Long id) {
+        Optional<Phone> phone = phoneDao.get(id);
+        CartItem cartItem = new CartItem();
+        cartItem.setQuantity(ONE_ITEM);
+        cartItem.setPhone(phone.get());
+        cart.getItems().add(cartItem);
     }
 
     public CartItem createNonExistValidCartItem() {

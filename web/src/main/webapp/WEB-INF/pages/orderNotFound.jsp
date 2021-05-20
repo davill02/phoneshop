@@ -36,6 +36,6 @@
 
 <div class="container-lg">
     <div class="row">
-        <div class="col-12 mx-auto"> Sorry, Product not found</div>
+        <div class="col-12 mx-auto"> Sorry, order not found</div>
     </div>
 </div>

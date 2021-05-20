@@ -83,3 +83,15 @@ values (1001, 11, 0),
        (1008, 18, 7),
        (1009, 19, 8),
        (1010, 0, 0);
+insert into orders(id, firstName, lastName, totalPrice, subtotal, deliveryPrice, deliveryAddress, additionalInformation,
+                   contactPhoneNo, status, uuid)
+values (100, 'Andrei', 'Artuhanau', 530, 498, 32, 'address', 'no', '+433882', 'NEW',
+        'ac0ed9b8-dde7-4523-b55c-70ae94175509'),
+       (101, 'Alex', 'Morgan', 551, 519, 32, 'address', 'no', '+4567', 'NEW', 'd9a36bba-0ab2-4338-bc23-922e6df5656a'),
+       (102, 'Artur', 'Zinger', 530, 498, 32, 'address', 'no', '+433882', 'NEW',
+        'c465e349-c73b-46a6-b5b8-7a07dcd49ed4');
+insert into order2phone(id, orderId, phoneId, quantity)
+values (1, 100, 1003, 2),
+       (2, 101, 1003, 1),
+       (3, 101, 1006, 1),
+       (4, 102, 1003, 1);

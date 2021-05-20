@@ -1,7 +1,7 @@
 package com.es.phoneshop.web.controller.pages;
 
 import com.es.core.model.phone.Phone;
-import com.es.core.model.phone.PhoneDao;
+import com.es.core.model.phone.PhoneService;
 import com.es.phoneshop.web.controller.ControllerUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
@@ -23,12 +23,12 @@ import static com.es.phoneshop.web.controller.pages.ControllersConstants.PHONE_D
 @RequestMapping(value = "/productDetails")
 public class ProductDetailsPageController {
     @Resource
-    private PhoneDao phoneDao;
+    private PhoneService phoneService;
 
     @RequestMapping(value = "/{id}", method = RequestMethod.GET)
     public String showProductDetails(Model model, @PathVariable("id") String id, HttpSession session) {
         ControllerUtils.createCartIfNotExist(session);
-        Optional<Phone> phone = phoneDao.get(Long.valueOf(id));
+        Optional<Phone> phone = phoneService.get(Long.valueOf(id));
         if (phone.isPresent()) {
             model.addAttribute(PHONE_DETAILS_ATTR, phone.get());
             return PHONE_DETAILS_PAGE;

@@ -1,6 +1,6 @@
 package com.es.phoneshop.web.controller.pages;
 
-import com.es.core.model.phone.PhoneDao;
+import com.es.core.model.phone.PhoneService;
 import com.es.phoneshop.web.controller.ControllerUtils;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -20,15 +20,15 @@ import static com.es.phoneshop.web.controller.pages.ControllersConstants.PRODUCT
 public class ProductListPageController {
     public static final int COUNT_PRODUCTS_ON_PAGE = 10;
     @Resource
-    private PhoneDao phoneDao;
+    private PhoneService phoneService;
 
     @RequestMapping(method = RequestMethod.GET)
     public String showProductList(Model model, @RequestParam(required = false) String query, @RequestParam(required = false) String order,
                                   @RequestParam(required = false) String sort, @RequestParam(required = false) Integer page, HttpSession session) {
         ControllerUtils.createCartIfNotExist(session);
-        model.addAttribute(COUNT_PHONES_ATTR, phoneDao.countResultsFindAllOrderBy(query));
+        model.addAttribute(COUNT_PHONES_ATTR, phoneService.countResultsFindAllOrderBy(query));
         int p = (page != null) ? page : 1;
-        model.addAttribute(PHONES_ATTR, phoneDao.findAllOrderBy(COUNT_PRODUCTS_ON_PAGE * (p - 1), COUNT_PRODUCTS_ON_PAGE, order, sort, query));
+        model.addAttribute(PHONES_ATTR, phoneService.findAllOrderBy(COUNT_PRODUCTS_ON_PAGE * (p - 1), COUNT_PRODUCTS_ON_PAGE, order, sort, query));
         return PRODUCT_LIST_PAGE;
     }
 
