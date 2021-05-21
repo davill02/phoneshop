@@ -117,9 +117,8 @@ public class JdbcOrderDao implements OrderDao {
     }
 
     @Override
-    public List<Order> getAll() {
+    public List<Order> getAllWithoutOrderItemList() {
         List<Order> orders = jdbcTemplate.query(SELECT_ALL_ORDERS, orderRowMapper);
-        orders.forEach(this::setOrderItemList);
         return orders;
     }
 

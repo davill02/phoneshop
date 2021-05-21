@@ -11,7 +11,7 @@ public interface OrderDao {
 
     void saveOrder(Order order);
 
-    List<Order> getAll();
+    List<Order> getAllWithoutOrderItemList();
 
     void changeOrderStatus(Long id, OrderStatus newStatus);
 }
