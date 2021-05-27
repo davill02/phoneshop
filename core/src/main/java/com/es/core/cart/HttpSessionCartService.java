@@ -115,8 +115,7 @@ public class HttpSessionCartService implements CartService {
     public void remove(Long phoneId, Cart cart) {
         removeInvalidCartItems(cart);
         cart.setItems(removeCartItemByIdAhdReturnCartItems(phoneId, cart));
-        cart.setQuantity(calculateQuantity(cart));
-        cart.setTotalPrice(calculateTotalPrice(cart));
+        recalculateCart(cart);
     }
 
     @Override

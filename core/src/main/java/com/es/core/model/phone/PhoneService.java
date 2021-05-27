@@ -11,4 +11,7 @@ public interface PhoneService {
     Long countResultsFindAllOrderBy(String query);
 
     Optional<Stock> getStock(Long id);
+
+    Optional<Stock> getStockByModel(String model);
+    Optional<Long> getIdByModel(String model);
 }

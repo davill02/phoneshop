@@ -39,7 +39,7 @@
     <div class="container mt-5">
         <c:if test="${orderItemsOutOfStockMsg != null}">
             <div class="row text-center">
-                <p> We remove all items.</p>
+                <p> We remove some items.</p>
                 <p class="text-danger">${orderItemsOutOfStockMsg}</p>
             </div>
         </c:if>
@@ -103,11 +103,13 @@
                         <tags:inputRow path="deliveryAddress" title="Delivery address"></tags:inputRow>
 
                     </table>
+                    <p>Additional information</p>
                     <form:textarea path="additionalInformation" class="form-control" rows="4"></form:textarea>
                     <p class="text-danger">
                         <form:errors path="additionalInformation"/>
                     </p>
-                    <input type="submit" class="btn btn-primary">
+                    <a class="btn btn-primary" href="${pageContext.servletContext.contextPath}/cart">Back to cart</a>
+                    <input value="Buy" type="submit" class="btn btn-success">
                 </form:form>
             </div>
         </div>

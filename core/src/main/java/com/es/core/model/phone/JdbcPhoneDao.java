@@ -113,6 +113,30 @@ public class JdbcPhoneDao implements PhoneDao {
         }
     }
 
+    public Optional<Stock> getStockByModel(final String model) {
+        return getStock(getOptionalPhoneByModel(model).orElse(new Phone()).getId());
+    }
+
+    @Override
+    public Optional<Long> getIdByModel(String model) {
+        List<Long> ids = jdbcTemplate.queryForList("SELECT id FROM PHONES WHERE MODEL = ?", Long.class, model);
+        if (ids.isEmpty()) {
+            return Optional.empty();
+        } else {
+            return Optional.of(ids.get(0));
+        }
+    }
+
+    private Optional<Phone> getOptionalPhoneByModel(String model) {
+        List<Phone> phones =
+                jdbcTemplate.query("SELECT * FROM PHONES WHERE model = ?", new BeanPropertyRowMapper<>(Phone.class), model);
+        Optional<Phone> result = Optional.empty();
+        if (phones.size() != 0) {
+            result = Optional.of(phones.get(0));
+        }
+        return result;
+    }
+
     private void setColors(Phone phone) {
         List<Color> colors = jdbcTemplate.query(FIND_COLOR_BY_ID, (resultSet, i) -> {
             Color color = new Color();

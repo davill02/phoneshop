@@ -19,4 +19,8 @@ public interface PhoneDao {
     void decreaseStock(Long key, Long count);
 
     void increaseStock(Long key, Long count);
+
+    Optional<Stock> getStockByModel(final String model);
+
+    Optional<Long> getIdByModel(String model);
 }

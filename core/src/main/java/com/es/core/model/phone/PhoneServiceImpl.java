@@ -30,4 +30,14 @@ public class PhoneServiceImpl implements PhoneService {
     public Optional<Stock> getStock(Long id) {
         return phoneDao.getStock(id);
     }
+
+    @Override
+    public Optional<Stock> getStockByModel(String model) {
+        return phoneDao.getStockByModel(model);
+    }
+
+    @Override
+    public Optional<Long> getIdByModel(String model) {
+        return phoneDao.getIdByModel(model);
+    }
 }
