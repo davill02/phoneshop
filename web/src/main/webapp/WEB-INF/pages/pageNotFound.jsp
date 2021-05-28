@@ -17,16 +17,11 @@
 </head>
 <nav class="navbar navbar-light bg-light">
     <tags:phonify/>
-
-    <ul class="navbar-nav">
-        <li class="nav-item">
-            <a href="#" class="nav-link me-4">Login</a>
-        </li>
-    </ul>
+    <tags:login/>
 </nav>
 
 <div class="container-lg">
     <div class="row">
-        <div class="col-12 mx-auto"> Sorry, order not found</div>
+        <div class="col-12 text-center mx-auto"> Page not found</div>
     </div>
 </div>

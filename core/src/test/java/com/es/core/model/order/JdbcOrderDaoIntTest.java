@@ -117,7 +117,7 @@ public class JdbcOrderDaoIntTest {
 
     @Test
     public void shouldGetAllOrders() {
-        List<Order> orders = orderDao.getAll();
+        List<Order> orders = orderDao.getAllWithoutOrderItemList();
 
         assertEquals(3, orders.size());
         orders.forEach(order -> assertNotNull(order.getOrderItems()));

@@ -21,28 +21,25 @@ public class OrdersPageController {
     @Resource
     private OrderService orderService;
 
-    @RequestMapping( method = RequestMethod.GET)
+    @RequestMapping(method = RequestMethod.GET)
     public String getAllOrders(Model model) {
         model.addAttribute(ORDERS_ATTR, orderService.getAll());
         return "admin";
     }
 
     @RequestMapping(value = "/{id}", method = RequestMethod.GET)
-    public String getAllOrders(Model model, @PathVariable("id") String id) {
+    public String getOrderById(Model model, @PathVariable("id") Long id) {
         Optional<Order> order;
-        try {
-            order = orderService.getOrderById(Long.parseLong(id));
-            if (order.isPresent()) {
-                model.addAttribute(ORDER_ATTR, order.get());
-                return "adminOrderOverview";
-            }
-        } catch (NumberFormatException ignored) {
+        order = orderService.getOrderById(id);
+        if (order.isPresent()) {
+            model.addAttribute(ORDER_ATTR, order.get());
+            return "adminOrderOverview";
         }
         return "adminOverviewOrderNotFound";
     }
 
     @RequestMapping(value = "/{id}", method = RequestMethod.POST)
-    public String changeOrderStatus(Model model, @PathVariable("id") Long id, @RequestParam("orderStatus") String orderStatus) {
+    public String changeOrderStatus(@PathVariable("id") Long id, @RequestParam("orderStatus") String orderStatus) {
         orderService.changeOrderStatus(id, orderStatus);
         return "redirect:/admin/orders/" + id;
     }
