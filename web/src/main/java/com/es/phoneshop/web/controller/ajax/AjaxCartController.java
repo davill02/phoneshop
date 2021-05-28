@@ -23,7 +23,6 @@ import javax.annotation.Resource;
 import javax.servlet.http.HttpSession;
 import javax.validation.Valid;
 
-import static com.es.phoneshop.web.controller.ControllerUtils.createCartIfNotExist;
 import static com.es.phoneshop.web.controller.pages.ControllersConstants.CART_ATTR;
 
 @Controller
@@ -45,7 +44,6 @@ public class AjaxCartController {
     @ResponseStatus(HttpStatus.CREATED)
     @ResponseBody
     public CartDto addPhone(@Valid PhoneAddingForm phoneAddingForm, HttpSession session) {
-        createCartIfNotExist(session);
         Cart currentCart = (Cart) session.getAttribute(CART_ATTR);
         cartService.addPhone(phoneAddingForm.getPhoneId(), Long.parseLong(phoneAddingForm.getQuantity()), currentCart);
         return conversionService.convert(currentCart, CartDto.class);

@@ -2,7 +2,6 @@ package com.es.phoneshop.web.controller.pages;
 
 import com.es.core.model.phone.Phone;
 import com.es.core.model.phone.PhoneService;
-import com.es.phoneshop.web.controller.ControllerUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -13,7 +12,6 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
 import javax.annotation.Resource;
-import javax.servlet.http.HttpSession;
 import java.util.Optional;
 
 import static com.es.phoneshop.web.controller.pages.ControllersConstants.PHONE_DETAILS_ATTR;
@@ -26,8 +24,7 @@ public class ProductDetailsPageController {
     private PhoneService phoneService;
 
     @RequestMapping(value = "/{id}", method = RequestMethod.GET)
-    public String showProductDetails(Model model, @PathVariable("id") String id, HttpSession session) {
-        ControllerUtils.createCartIfNotExist(session);
+    public String showProductDetails(Model model, @PathVariable("id") String id) {
         Optional<Phone> phone = phoneService.get(Long.valueOf(id));
         if (phone.isPresent()) {
             model.addAttribute(PHONE_DETAILS_ATTR, phone.get());

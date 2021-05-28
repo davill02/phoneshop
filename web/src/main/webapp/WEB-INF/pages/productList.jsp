@@ -1,10 +1,7 @@
 <%@ page contentType="text/html;charset=UTF-8" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="tags" tagdir="/WEB-INF/tags" %>
-
-<jsp:useBean id="cart" type="com.es.core.cart.Cart" scope="session"/>
 <head>
-
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta3/dist/css/bootstrap.min.css" rel="stylesheet"
           integrity="sha384-eOJMYsd53ii+scO/bJGFsiCZc+5NDVN2yr8+0RDqr0Ql0h+rP48ckxlpbzKgwra6" crossorigin="anonymous">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta3/dist/js/bootstrap.bundle.min.js"
@@ -20,13 +17,9 @@
 <nav class="navbar navbar-light bg-light">
     <tags:phonify/>
     <ul class="navbar-nav me-auto">
-        <li class="nav-item">
-            <div class="btn-group" role="group">
-                <a href="${pageContext.servletContext.contextPath}/cart" class="btn btn-primary">Cart</a>
-                <button id="quantity" type="button" class="btn btn-primary" disabled>
-                    Quantity: ${cart.quantity} </button>
-                <button id="price" type="button" class="btn btn-primary" disabled>Price: ${cart.totalPrice} $</button>
-            </div>
+        <jsp:include page="/include/cart"/>
+        <li class="nav-item mt-2">
+            <a href="${pageContext.servletContext.contextPath}/quickCart" class="btn btn-primary">Quick cart</a>
         </li>
     </ul>
     <tags:login/>
@@ -106,7 +99,7 @@
     </ul>
 </nav>
 <script type="text/javascript">
- $('.page-item').remove()
+    $('.page-item').remove()
     let tokens = $('caption').text().split(' ')
     let countPages = Math.ceil(parseInt(tokens[1]) / 10)
     let paramsString = document.location.search;
@@ -130,7 +123,7 @@
 
 
     for (let index = first; index < last; index++) {
-         if (index != pageNum) {
+        if (index != pageNum) {
             $('#pag-list').append('<li id="page-item" class="page-item"><a class="page-link" href="' + addOrUpdateUrlParam('page', index) + '">' + index.toString() + '</a></li>')
         } else {
             $('#pag-list').append('<li id="page-item" class="page-item active"><a class="page-link" href="' + addOrUpdateUrlParam('page', index) + '">' + index.toString() + '</a></li>')
@@ -143,14 +136,14 @@
         if (regex.test(href)) {
             regex = new RegExp("([&\\?])" + name + "=\\d+");
             return href.replace(regex, "$1" + name + "=" + value);
-        }
-        else {
+        } else {
             if (href.indexOf("?") > -1)
                 return href + "&" + name + "=" + value;
             else
                 return href + "?" + name + "=" + value;
         }
     }
+
     $('button').on('click', function () {
         let id = $(this).attr('id')
         let count = $('input[id=' + id.toString() + ']').val()
@@ -168,8 +161,7 @@
                     for (let str of ob.message.toString().split('\n')) {
                         $('td[id=' + id.toString() + ']').append('<div id="' + id.toString() + '" class="text-danger">' + str + '</div>')
                     }
-                }
-                else {
+                } else {
                     alert(ob.message)
                     $('#quantity').html("Quantity : " + ob.quantity.toString())
                     $('#price').html("Price : " + ob.totalPrice.toString() + ' $')
@@ -177,12 +169,6 @@
             }
         });
     })
-
-
-
-
-
-
 
 
 </script>

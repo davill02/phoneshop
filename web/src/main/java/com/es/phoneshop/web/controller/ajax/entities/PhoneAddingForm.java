@@ -1,13 +1,14 @@
 package com.es.phoneshop.web.controller.ajax.entities;
 
-import javax.validation.constraints.NotBlank;
+import org.hibernate.validator.constraints.NotEmpty;
+
 import javax.validation.constraints.Pattern;
 import javax.validation.constraints.Size;
 
 public class PhoneAddingForm {
-    @NotBlank
+    @NotEmpty
     private Long phoneId;
-    @NotBlank(message = "Quantity is empty")
+    @NotEmpty(message = "Quantity is empty")
     @Size(min = 1, max = 4, message = "Quantity can't be more than 4 symbols")
     @Pattern(regexp = "[1-9][0-9]*", message = "Quantity can't be string")
     private String quantity;

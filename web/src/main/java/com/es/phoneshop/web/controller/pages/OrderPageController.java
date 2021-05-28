@@ -6,7 +6,6 @@ import com.es.core.model.order.Order;
 import com.es.core.order.OrderService;
 import com.es.core.order.OutOfStockException;
 import com.es.core.order.PersonalDataForm;
-import com.es.phoneshop.web.controller.ControllerUtils;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -38,7 +37,6 @@ public class OrderPageController {
 
     @RequestMapping(method = RequestMethod.GET)
     public String getOrder(Model model, HttpSession session) {
-        ControllerUtils.createCartIfNotExist(session);
         Cart cart = (Cart) session.getAttribute(CART_ATTR);
         session.setAttribute(ORDER_ATTR, orderService.createOrder(cart));
         if (!model.containsAttribute(PERSONAL_DATA_FORM_ATTR)) {

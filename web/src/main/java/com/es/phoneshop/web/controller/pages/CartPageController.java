@@ -2,7 +2,6 @@ package com.es.phoneshop.web.controller.pages;
 
 import com.es.core.cart.Cart;
 import com.es.core.cart.CartService;
-import com.es.phoneshop.web.controller.ControllerUtils;
 import com.es.phoneshop.web.controller.pages.entites.UpdateForm;
 import com.es.phoneshop.web.controller.pages.validators.UpdateFormValidator;
 import org.springframework.core.convert.ConversionService;
@@ -36,18 +35,17 @@ public class CartPageController {
     @Resource
     private CartService cartService;
     @Resource
-    private UpdateFormValidator validator;
+    private UpdateFormValidator updateFormValidator;
     @Resource
     private ConversionService conversionService;
 
     @InitBinder(UPDATE_FORM_ATTR)
     public void init(WebDataBinder dataBinder) {
-        dataBinder.setValidator(validator);
+        dataBinder.setValidator(updateFormValidator);
     }
 
     @RequestMapping(method = RequestMethod.GET)
     public void getCart(HttpSession session, Model model) {
-        ControllerUtils.createCartIfNotExist(session);
         if (!model.containsAttribute(HAS_ERRORS_ATTR)) {
             model.addAttribute(UPDATE_FORM_ATTR, conversionService.convert(session.getAttribute(CART_ATTR), UpdateForm.class));
         }

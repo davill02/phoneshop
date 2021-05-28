@@ -2,9 +2,8 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="tags" tagdir="/WEB-INF/tags" %>
 <%@ taglib prefix="form" uri="http://www.springframework.org/tags/form" %>
-<jsp:useBean id="cart" type="com.es.core.cart.Cart" scope="session"/>
-<head>
 
+<head>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta3/dist/css/bootstrap.min.css" rel="stylesheet"
           integrity="sha384-eOJMYsd53ii+scO/bJGFsiCZc+5NDVN2yr8+0RDqr0Ql0h+rP48ckxlpbzKgwra6" crossorigin="anonymous">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta3/dist/js/bootstrap.bundle.min.js"
@@ -20,17 +19,11 @@
 <nav class="navbar navbar-light bg-light">
     <tags:phonify/>
     <ul class="navbar-nav me-auto">
-        <li class="nav-item">
-            <div class="btn-group" role="group">
-                <a href="${pageContext.servletContext.contextPath}/cart" class="btn btn-primary">Cart</a>
-                <button id="quantity" type="button" class="btn btn-primary" disabled>
-                    Quantity: ${cart.quantity} </button>
-                <button id="price" type="button" class="btn btn-primary" disabled>Price: ${cart.totalPrice} $</button>
-            </div>
-        </li>
+        <jsp:include page="/include/cart"/>
     </ul>
 
 </nav>
+<jsp:useBean id="cart" type="com.es.core.cart.Cart" scope="session"/>
 <c:if test="${cart.items.size() == 0}">
     <div class="container mt-5">
         <div class="row">
